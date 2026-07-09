@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數源對決 - 元素煉金工坊</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background: radial-gradient(circle, #150d22 0%, #07040d 100%);
+            color: #e0d5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #ffd700;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            font-size: 28px;
+        }
+
+        /* 煉金工坊主畫面 */
+        .alchemy-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 左側：煉金釜與题目區 */
+        .alchemy-left {
+            flex: 1.2;
+            min-width: 340px;
+            background: rgba(15, 8, 30, 0.85);
+            border: 3px solid #8c6a3c;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 右側：英靈卡牌區 */
+        .alchemy-right {
+            flex: 0.8;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 題目顯示框 */
+        .quest-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #5d4297;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+
+        .quest-title {
+            color: #ffb830;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .quest-text {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* 水晶元素容器 */
+        .crystals-zone {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        /* 水晶日系UI */
+        .crystal {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .crystal:hover {
+            transform: scale(1.15);
+        }
+
+        .crystal.red { background: radial-gradient(circle, #ff5e5e, #aa0000); }
+        .crystal.blue { background: radial-gradient(circle, #5e97ff, #0044aa); }
+        .crystal.green { background: radial-gradient(circle, #63ff5e, #00aa11); }
+        .crystal.yellow { background: radial-gradient(circle, #ffeb5e, #aaaa00); }
+        .crystal.purple { background: radial-gradient(circle, #df5eff, #6600aa); }
+
+        /* 煉金釜 (Cauldron) */
+        .cauldron {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, #331f4d 30%, #170d24 90%);
+            border: 6px solid #d4af37;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .cauldron::after {
+            content: '🔮';
+            font-size: 70px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 輸入答案面板 */
+        .input-panel {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .input-panel input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #5d4297;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .btn-submit {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #d4af37 0%, #aa8210 100%);
+            border: none;
+            border-radius: 8px;
+            color: #120524;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 答題回報 */
+        #resultFeedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            min-height: 24px;
+        }
+
+        /* 日系卡牌縮小版 - 巴斯卡 */
+        .mini-card {
+            width: 200px;
+            background: #0f081e;
+            border: 3px solid #d4af37;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(212,175,55,0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mini-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .mini-card img {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #4b1c8c, #1a0f2e);
+            border-radius: 6px;
+            margin: 8px 0;
+        }
+
+        .skill-btn {
+            background: #5d4297;
+            border: 1px solid #d4af37;
+            color: #ffd700;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* 技能彈窗 */
+        .tooltip-box {
+            background: rgba(26, 12, 51, 0.95);
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #ffd700;
+            width: 200px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-header">
+    <h1>🧪 元素煉金工坊</h1>
+    <p>—— 運用「排列與組合 (P&C)」重塑煉金陣 ——</p>
+</div>
+
+<div class="alchemy-container">
+    <!-- 左側：煉金釜與題目 -->
+    <div class="alchemy-left">
+        <div class="quest-box">
+            <div class="quest-title" id="questDifficulty">Level 1 ✦ Combination</div>
+            <div class="quest-text" id="questText">載入題目中...</div>
+        </div>
+
+        <div class="crystals-zone">
+            <div class="crystal red" onclick="interactCrystal('紅')">紅</div>
+            <div class="crystal blue" onclick="interactCrystal('藍')">藍</div>
+            <div class="crystal green" onclick="interactCrystal('綠')">綠</div>
+            <div class="crystal yellow" onclick="interactCrystal('黃')">黃</div>
+            <div class="crystal purple" onclick="interactCrystal('紫')">紫</div>
+        </div>
+
+        <div class="cauldron" id="cauldron"></div>
+
+        <div class="input-panel">
+            <input type="number" id="answerInput" placeholder="輸入合成配方總數">
+            <button class="btn-submit" onclick="submitAnswer()">開始合成</button>
+        </div>
+
+        <div id="resultFeedback"></div>
+    </div>
+
+    <!-- 右側：數學英靈卡牌（巴斯卡） -->
+    <div class="alchemy-right">
+        <div class="mini-card" onclick="toggleSkill()">
+            <div style="font-weight: bold; color: #ffd700; font-size: 14px;">鋼鐵防線 · 巴斯卡</div>
+            <div style="color: #ffd700; font-size: 10px;">⭐⭐⭐⭐</div>
+            <div class="mini-card-img" style="height: 110px; background: radial-gradient(circle, #5b3996, #1d0f3a); border-radius: 6px; margin: 8px 0; display:flex; justify-content:center; align-items:center; font-size:32px;">🛡️</div>
+            <div style="font-size: 11px; color: #ccc;">天賦：巴斯卡三角防護</div>
+            <button class="skill-btn">啟用英靈提示</button>
+        </div>
+
+        <!-- 技能提示面板 -->
+        <div class="tooltip-box" id="skillTooltip">
+            <strong>巴斯卡的精算奧秘：</strong>
+            <p id="skillText">請先閱讀題目，我將為你分析排列組合公式...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
+    // ==========================================
+    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 模擬當前登入學生 ID (在 index.html 登入成功後，應將其寫入 localStorage)
+    // 這裡我們預設一個測試 ID 或從緩存讀取
+    let studentId = localStorage.getItem('supabase_student_id') || null;
+
+    // 隨機題目庫 (精心設計對接 DSE P&C 常考點)
+    const quests = [
+        {
+            id: 1,
+            type: 'C',
+            difficulty: 'Level 1 ✦ 組合限制',
+            text: '工坊內有「紅、藍、綠、黃、紫」5 種不同的元素水晶，煉金術士需要任選 3 種不同的水晶放入釜中。若「紅色」和「藍色」【不可同時】放入，一共有多少種不同的合成配方組合？',
+            answer: 7,
+            hint: '使用「餘事排除法」：\n1. 無任何限制選 3 種：C(5, 3) = 10 種。\n2. 「同時包含紅藍」的情況：紅藍已鎖定，只需從剩餘3種選1種：C(3, 1) = 3 種。\n3. 配方總數 = 10 - 3 = 7 種。'
+        },
+        {
+            id: 2,
+            type: 'P',
+            difficulty: 'Level 2 ✦ 排列順序',
+            text: '煉金術士必須在魔法陣的 4 個不同卡槽中，【依順序】放入 4 顆不同的水晶。若「紅色水晶」【必須放在第一個卡槽】，我們一共有多少種不同的排列方式？(可供選擇的水晶共有 5 種：紅、藍、綠、黃、紫)',
+            answer: 24,
+            hint: '因為有固定位置限制：\n1. 第一個位置已被「紅」鎖定（1種選擇）。\n2. 剩餘3個卡槽，從剩餘 4 種水晶中選 3 種排定順序：P(4, 3) = 4 × 3 × 2 = 24 種排列方式。'
+        },
+        {
+            id: 3,
+            type: 'C',
+            difficulty: 'Level 3 ✦ 至少一個限制',
+            text: '工坊要合成一瓶雷電防禦劑，需要從「紅、藍、綠、黃、紫」5 種水晶中任選 3 種。配方中【必須包含至少一顆綠色水晶】，請問有多少種符合要求的組合？',
+            answer: 6,
+            hint: '「至少一個」通常使用排除法更便利：\n1. 任意選 3 種組合：C(5, 3) = 10 種。\n2. 「完全不包含綠色」的組合：從其餘 4 種中選 3 種：C(4, 3) = 4 種。\n3. 符合要求的配方 = 10 - 4 = 6 種。'
+        }
+    ];
+
+    let currentQuest = null;
+
+    // 遊戲初始化
+    function initGame() {
+        // 隨機抽選一題
+        currentQuest = quests[Math.floor(Math.random() * quests.length)];
+        document.getElementById('questDifficulty').innerText = currentQuest.difficulty;
+        document.getElementById('questText').innerText = currentQuest.text;
+        document.getElementById('answerInput').value = '';
+        document.getElementById('resultFeedback').innerText = '';
+        document.getElementById('skillTooltip').style.display = 'none';
+        document.getElementById('skillText').innerText = currentQuest.hint;
+    }
+
+    // 點擊水晶的娛樂反饋（播放魔幻微晃動，增加趣味性）
+    function interactCrystal(name) {
+        const cauldron = document.getElementById('cauldron');
+        cauldron.style.transform = 'scale(1.1)';
+        setTimeout(() => cauldron.style.transform = 'scale(1)', 150);
+        document.getElementById('resultFeedback').innerText = `✨ 已點擊 ${name} 色水晶，在腦中構思組合吧！`;
+        document.getElementById('resultFeedback').style.color = '#a291c9';
+    }
+
+    // 切換英靈技能提示顯示
+    function toggleSkill() {
+        const tooltip = document.getElementById('skillTooltip');
+        tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // 提交答案
+    async function submitAnswer() {
+        const studentAns = parseInt(document.getElementById('answerInput').value);
+        const feedback = document.getElementById('resultFeedback');
+
+        if (isNaN(studentAns)) {
+            feedback.innerText = '⚠️ 請輸入你的答案！';
+            feedback.style.color = '#ff4d4d';
+            return;
+        }
+
+        if (studentAns === currentQuest.answer) {
+            feedback.innerText = '🎉 融合成功！你算出了完美的元素平衡，獲得 50 寶石！';
+            feedback.style.color = '#00ffcc';
+
+            // 實時將成績儲存到 Supabase 雲端
+            await updateProgressOnCloud(true);
+        } else {
+            feedback.innerText = '❌ 元素爆炸！比例不平衡，請檢索英靈提示，再算一次！';
+            feedback.style.color = '#ff4d4d';
+            
+            await updateProgressOnCloud(false);
+        }
+    }
+
+    /**
+     * 雲端存檔更新函數
+     */
+    async function updateProgressOnCloud(isCorrect) {
+        // 1. 如果 studentId 為空（例如非從 login 登入，僅本地調試），我們使用測試學生
+        if (!studentId) {
+            // 先在控制台打印提示
+            console.warn('⚠️ 未檢測到學生 ID，將以測試學號進行寫入');
+            // 嘗試獲取數據庫中現有第一個學生的 ID 作為測試
+            const { data } = await supabaseClient.from('students').select('id').limit(1);
+            if (data && data.length > 0) {
+                studentId = data[0].id;
+            } else {
+                return; // 如果數據庫連學生都沒有，則無法寫入
+            }
+        }
+
+        try {
+            // A. 更新學生的寶石 (Gems)：答對加 50 寶石
+            if (isCorrect) {
+                // 讀取當前寶石
+                const { data: progress } = await supabaseClient
+                    .from('student_progress')
+                    .select('gems')
+                    .eq('student_id', studentId)
+                    .single();
+                
+                if (progress) {
+                    await supabaseClient
+                        .from('student_progress')
+                        .update({ gems: progress.gems + 50 })
+                        .eq('student_id', studentId);
+                }
+            }
+
+            // B. 更新 DSE 表現記錄表格 (dse_records)
+            // 先嘗試讀取現有記錄
+            const { data: record } = await supabaseClient
+                .from('dse_records')
+                .select('*')
+                .eq('student_id', studentId)
+                .eq('topic', 'Permutations_Combinations')
+                .single();
+
+            if (record) {
+                // 如果已有記錄，累加次數
+                await supabaseClient
+                    .from('dse_records')
+                    .update({
+                        total_attempts: record.total_attempts + 1,
+                        correct_attempts: record.correct_attempts + (isCorrect ? 1 : 0)
+                    })
+                    .eq('id', record.id);
+            } else {
+                // 如果是第一次答該單元，則新建一行
+                await supabaseClient
+                    .from('dse_records')
+                    .insert([{
+                        student_id: studentId,
+                        topic: 'Permutations_Combinations',
+                        total_attempts: 1,
+                        correct_attempts: isCorrect ? 1 : 0
+                    }]);
+            }
+            console.log('☁️ 雲端學生成績同步成功！');
+        } catch (e) {
+            console.error('❌ 雲端同步出錯：', e);
+        }
+    }
+
+    // 運行
+    initGame();
+</script>
+</body>
+</html>
+
+

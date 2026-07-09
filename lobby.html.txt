@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數源對決 - 夢幻星導城堡大廳</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 夢幻城堡背景：星空、極光與深邃魔法藍紫漸層 */
+        body {
+            background: radial-gradient(circle at center, #1b153a 0%, #0a0618 100%);
+            color: #d3c7f3;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            background-position: 0 0, 40px 60px;
+        }
+
+        /* 城堡頂部頂欄 */
+        .castle-navbar {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .gem-icon {
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+        /* 城堡主體標題：夢幻哥德風 */
+        .castle-main {
+            text-align: center;
+            margin-top: 50px;
+            z-index: 10;
+        }
+
+        h1.castle-title {
+            font-size: 42px;
+            color: #f6e6be;
+            margin: 0;
+            text-shadow: 0 0 15px rgba(246, 230, 190, 0.5), 0 0 30px rgba(109, 58, 238, 0.6);
+            font-family: 'Georgia', serif;
+            letter-spacing: 3px;
+        }
+
+        p.castle-subtitle {
+            font-size: 16px;
+            color: #9d8eff;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(157, 142, 255, 0.4);
+        }
+
+        /* 關卡選擇區：漂浮卡牌 */
+        .portal-zone {
+            display: flex;
+            gap: 50px;
+            margin-top: 60px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        /* 夢幻城堡黃金大卡牌 */
+        .portal-card {
+            width: 280px;
+            height: 400px;
+            background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
+            border: 4px solid #e0c068; /* 玫瑰金/黃金雕花框 */
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(224, 192, 104, 0.1);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+
+        /* 懸停時：卡牌浮起並散發夢幻霓虹光芒 */
+        .portal-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 35px rgba(157, 142, 255, 0.6);
+            border-color: #fff;
+        }
+
+        /* 夢幻城堡插畫區域 */
+        .card-illustration {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            border: 2px solid #856a37;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 70px;
+            background: radial-gradient(circle, #2d1854 0%, #0d061c 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 漂浮魔法圈效果 */
+        .card-illustration::before {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 1px dashed rgba(157, 142, 255, 0.3);
+            border-radius: 50%;
+            animation: rotate-magic 10s linear infinite;
+        }
+
+        @keyframes rotate-magic {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .portal-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            margin-top: 15px;
+        }
+
+        .portal-desc {
+            font-size: 13px;
+            color: #a49fc4;
+            text-align: center;
+            line-height: 1.4;
+            margin-top: 10px;
+        }
+
+        .btn-enter {
+            background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
+            color: #120524;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 0 10px rgba(224, 192, 104, 0.4);
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 77, 77, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="castle-navbar">
+    <div style="font-weight: bold; color: #ffd700; font-size: 18px; letter-spacing: 1px;">🏰 概率星導院</div>
+    
+    <div style="display: flex; gap: 20px; align-items: center;">
+        <div class="student-info">
+            <span id="studentName">煉金術士 載入中...</span>
+            <span class="gem-icon">💎 <span id="studentGems">0</span></span>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">離開城堡</button>
+    </div>
+</div>
+
+<div class="castle-main">
+    <h1 class="castle-title">夢幻星導城堡</h1>
+    <p class="castle-subtitle">—— 選擇你想解鎖的概率魔法試煉門 ——</p>
+</div>
+
+<!-- 傳送門卡牌區 -->
+<div class="portal-zone">
+    <!-- 關卡一卡牌 -->
+    <div class="portal-card" onclick="navigateTo('alchemy.html')">
+        <div class="card-illustration">🧪</div>
+        <div>
+            <div class="portal-name">元素煉金工坊</div>
+            <div class="portal-desc">運用「排列與組合 (P&C)」重組秘藥，破解城堡深處的元素迷題。</div>
+        </div>
+        <button class="btn-enter">進入試煉</button>
+    </div>
+
+    <!-- 關卡二卡牌 -->
+    <div class="portal-card" onclick="navigateTo('defense.html')">
+        <div class="card-illustration">🛡️</div>
+        <div>
+            <div class="portal-name">概率防禦戰</div>
+            <div class="portal-desc">召喚數學英靈高斯，精算「期望值」魔法彈，擊退城堡守護獸。</div>
+        </div>
+        <button class="btn-enter">進入決鬥</button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
+    // ==========================================
+    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 從 LocalStorage 讀取當前學生資料
+    const studentId = localStorage.getItem('supabase_student_id');
+    const studentName = localStorage.getItem('supabase_student_name');
+
+    // 如果未登入，強制踢回登入頁
+    if (!studentId || !studentName) {
+        alert('⚠️ 偵測到魔力失效！請先在學院傳送門登入。');
+        window.location.href = 'index.html';
+    }
+
+    // 初始化大廳數據
+    async function initLobby() {
+        document.getElementById('studentName').innerText = `${studentName} 煉金術士`;
+
+        try {
+            // 從雲端實時抓取學生最新的寶石數量
+            const { data, error } = await supabaseClient
+                .from('student_progress')
+                .select('gems')
+                .eq('student_id', studentId)
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                document.getElementById('studentGems').innerText = data.gems;
+            }
+        } catch (e) {
+            console.error('抓取寶石數量失敗：', e);
+        }
+    }
+
+    function navigateTo(page) {
+        window.location.href = page;
+    }
+
+    function handleLogout() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
+
+    initLobby();
+</script>
+</body>
+</html>
+
+
