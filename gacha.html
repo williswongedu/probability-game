@@ -1,24 +1,36 @@
-gacha_html_content = """<!DOCTYPE html>
+gacha_v2 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 星導召喚神殿</title>
-    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --castle-shrine: url('https://images.unsplash.com/photo-1518005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop'); /* 古典神殿城堡背景 */
+        }
+
         body {
-            background: radial-gradient(circle at center, #1c103a 0%, #050212 100%);
+            background: #090514;
             color: #d1dbff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; box-sizing: border-box;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0),
-                radial-gradient(rgba(255,255,255,0.1) 2px, transparent 0);
-            background-size: 40px 40px, 80px 80px;
+            position: relative;
+        }
+
+        /* 城堡神殿視差背景 */
+        .parallax-shrine-bg {
+            position: absolute;
+            top: -5%; left: -5%;
+            width: 110%; height: 110%;
+            background: var(--castle-shrine) center/cover no-repeat;
+            opacity: 0.2;
+            filter: blur(4px);
+            z-index: 1;
+            pointer-events: none;
         }
 
         h1 {
@@ -27,13 +39,14 @@ gacha_html_content = """<!DOCTYPE html>
             margin: 10px 0;
             font-size: 28px;
             text-align: center;
+            z-index: 10;
         }
 
-        /* 城堡背景裝飾 */
+        /* 城堡背景主板 */
         .castle-backdrop {
             width: 100%;
             max-width: 1000px;
-            background: rgba(12, 6, 28, 0.85);
+            background: rgba(12, 6, 28, 0.9);
             border: 3px solid #e0c068;
             border-radius: 20px;
             padding: 25px;
@@ -43,9 +56,10 @@ gacha_html_content = """<!DOCTYPE html>
             gap: 30px;
             flex-wrap: wrap;
             margin-top: 15px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
         }
 
-        /* 左側：召喚大陣 */
         .summon-left {
             flex: 1.2;
             min-width: 320px;
@@ -54,7 +68,6 @@ gacha_html_content = """<!DOCTYPE html>
             align-items: center;
         }
 
-        /* 右側：圖鑑資訊與操作 */
         .summon-right {
             flex: 0.8;
             min-width: 280px;
@@ -65,14 +78,14 @@ gacha_html_content = """<!DOCTYPE html>
 
         /* Plan B: 動態數學迷題 */
         .booster-box {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             border: 2px solid #7c4dff;
             border-radius: 12px;
             padding: 15px;
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(124, 77, 255, 0.2);
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.3);
         }
 
         .booster-title {
@@ -133,10 +146,10 @@ gacha_html_content = """<!DOCTYPE html>
             align-items: center;
             position: relative;
             margin: 20px 0;
-            box-shadow: 0 0 30px rgba(224, 192, 104, 0.1);
+            box-shadow: 0 0 30px rgba(224, 192, 104, 0.15);
         }
 
-        /* 星導石碑 */
+        /* 3D 星導石碑 */
         .summon-stone {
             width: 80px;
             height: 120px;
@@ -147,7 +160,7 @@ gacha_html_content = """<!DOCTYPE html>
             justify-content: center;
             align-items: center;
             font-size: 36px;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
             cursor: grab;
             transition: transform 0.1s ease;
             position: absolute;
@@ -160,7 +173,7 @@ gacha_html_content = """<!DOCTYPE html>
         /* 爆率翻倍時金光效果 */
         .altar-container.boosted {
             border-color: #00ffcc;
-            box-shadow: 0 0 45px rgba(0, 255, 204, 0.4);
+            box-shadow: 0 0 45px rgba(0, 255, 204, 0.5);
             animation: pulse-boost 2s infinite alternate;
         }
 
@@ -173,24 +186,24 @@ gacha_html_content = """<!DOCTYPE html>
         .reveal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 2, 18, 0.96);
+            background: rgba(5, 2, 18, 0.97);
             z-index: 100;
             display: none;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            perspective: 1000px;
+            perspective: 1200px;
         }
 
-        /* 豪華 TCG 3D 卡牌 */
+        /* 豪華 TCG 3D 卡牌 Pop-out pop-up */
         .tcg-holo-card {
-            width: 300px;
-            height: 420px;
+            width: 310px;
+            height: 434px;
             border-radius: 16px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 35px rgba(0,0,0,0.8);
+            box-shadow: 0 0 45px rgba(0,0,0,0.9);
             cursor: pointer;
         }
 
@@ -207,7 +220,7 @@ gacha_html_content = """<!DOCTYPE html>
             align-items: center;
             font-size: 50px;
             color: #e0c068;
-            box-shadow: inset 0 0 20px rgba(224, 192, 104, 0.4);
+            box-shadow: inset 0 0 30px rgba(224, 192, 104, 0.5);
         }
 
         /* 卡面 */
@@ -224,13 +237,14 @@ gacha_html_content = """<!DOCTYPE html>
             box-sizing: border-box;
             color: #fff;
             overflow: hidden;
+            transform-style: preserve-3d; /* Make child elements float */
         }
 
         /* 雷射全息彩虹層 */
         .holo-foil {
             position: absolute;
             top:0; left:0; width:100%; height:100%;
-            background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 30%, rgba(0,255,255,0.2) 50%, rgba(255,0,255,0.15) 70%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 30%, rgba(0,255,255,0.25) 50%, rgba(255,0,255,0.2) 70%, rgba(255,255,255,0) 100%);
             background-size: 200% 200%;
             mix-blend-mode: color-dodge;
             z-index: 5;
@@ -238,10 +252,10 @@ gacha_html_content = """<!DOCTYPE html>
             transition: background-position 0.15s ease;
         }
 
-        /* 顏色分類：Pokemon Bright Color Palette */
-        .card-character { background: radial-gradient(circle, #f7d547 0%, #b8860b 100%); border-color: #ffd700; } /* 人物角色：金黃色 */
-        .card-pet { background: radial-gradient(circle, #5ec3e5 0%, #104e8b 100%); border-color: #00bfff; }       /* 寵物：水藍色 */
-        .card-weapon { background: radial-gradient(circle, #ff6b6b 0%, #8b1a1a 100%); border-color: #ff3e3e; }    /* 武器與加成：火紅色 */
+        /* Pokemon TCG Style bright, high-contrast color themes */
+        .card-character { background: radial-gradient(circle, #ffe14c 0%, #b8860b 100%); border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); } /* Character: Yellow Gold */
+        .card-pet { background: radial-gradient(circle, #5fe6ff 0%, #104e8b 100%); border-color: #00bfff; box-shadow: 0 0 20px rgba(0, 191, 255, 0.4); }       /* Pet: Sky Blue */
+        .card-weapon { background: radial-gradient(circle, #ff6c6c 0%, #8b1a1a 100%); border-color: #ff3e3e; box-shadow: 0 0 20px rgba(255, 62, 62, 0.4); }    /* Weapon: Fire Red */
 
         .card-header-tcg {
             display: flex;
@@ -250,6 +264,7 @@ gacha_html_content = """<!DOCTYPE html>
             font-weight: bold;
             font-size: 18px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            transform: translateZ(30px); /* Float heading in 3D */
         }
 
         .card-stars {
@@ -257,8 +272,10 @@ gacha_html_content = """<!DOCTYPE html>
             font-size: 13px;
             margin-top: 4px;
             letter-spacing: 2px;
+            transform: translateZ(25px);
         }
 
+        /* Character Pop-out Artwork: True 3D float */
         .card-illustration-tcg {
             height: 180px;
             border: 2px solid rgba(255,255,255,0.6);
@@ -267,19 +284,22 @@ gacha_html_content = """<!DOCTYPE html>
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 80px;
+            font-size: 85px;
             background: rgba(0,0,0,0.3);
             box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            transform: translateZ(40px); /* Artwork pop-out furthest */
+            transition: transform 0.2s;
         }
 
         .card-info-tcg {
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             border: 1.5px solid #fff;
             border-radius: 8px;
             padding: 10px;
             font-size: 12px;
             line-height: 1.4;
             flex-grow: 1;
+            transform: translateZ(20px); /* text block sits lower in 3D */
         }
 
         .btn-confirm-gacha {
@@ -292,6 +312,7 @@ gacha_html_content = """<!DOCTYPE html>
             font-size: 16px;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            z-index: 10;
         }
 
         .btn-back {
@@ -311,7 +332,9 @@ gacha_html_content = """<!DOCTYPE html>
 </head>
 <body>
 
-<div style="display:flex; justify-content:space-between; width:100%; max-width:1000px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:10px;">
+<div class="parallax-shrine-bg" id="parallaxShrine"></div>
+
+<div style="display:flex; justify-content:space-between; width:100%; max-width:1000px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:10px; z-index:10;">
     <span style="font-weight:bold; color:#ffd700; font-size:18px;">🏰 星導召喚神殿</span>
     <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
 </div>
@@ -385,9 +408,6 @@ gacha_html_content = """<!DOCTYPE html>
 </div>
 
 <script>
-    // ==========================================
-    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
-    // ==========================================
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -398,7 +418,14 @@ gacha_html_content = """<!DOCTYPE html>
     let isFlipped = false;
     let currentBoosterAns = 0;
 
-    // TCG 豪華卡池設計（人物、寵物、武器）
+    // 視差背景移動效果
+    const parallaxShrine = document.getElementById('parallaxShrine');
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.clientX) / 45;
+        const y = (window.innerHeight / 2 - e.clientY) / 45;
+        parallaxShrine.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+    });
+
     const gachaPool = {
         characters: [
             { name: '雷鳴精算師 · 高斯', type: '人物角色', stars: '⭐⭐⭐⭐⭐', emoji: '🧙‍♂️', skill: '常態修正', desc: '雷屬性 EX 卡牌。期望值精算正確時觸發雷擊，對敵方造成 150 點滿額真實傷害！', styleClass: 'card-character' },
@@ -407,7 +434,7 @@ gacha_html_content = """<!DOCTYPE html>
         ],
         pets: [
             { name: '阿基米德鴞', type: '寵物', stars: '⭐⭐⭐⭐', emoji: '🦉', skill: '窮竭守護', desc: '風屬性神寵。能將敵方的單次必殺技傷害期望值降低 30 點。', styleClass: 'card-pet' },
-            { name: '卡爾丹熊', type: '寵物', stars: '⭐⭐⭐', emoji: '🐻', skill: '大數幸運', desc: '土屬性寵物。增加全隊卡組 10% 的防禦觸發機率。', styleClass: 'card-pet' }
+            { name: '卡爾丹熊', type: '寵物', stars: '⭐⭐⭐', emoji: '🐻', skill: '大數幸運', desc: '土屬性寵物。增加全隊卡組 10% 的防禦與重骰觸發機率。', styleClass: 'card-pet' }
         ],
         weapons: [
             { name: '帕斯卡三叉戟', type: '武器卡', stars: '⭐⭐⭐⭐', emoji: '🔱', skill: '三角聯攜', desc: '黃金武器。自建卡組中排列組合題目的暴擊傷害加成 40%。', styleClass: 'card-weapon' },
@@ -415,7 +442,6 @@ gacha_html_content = """<!DOCTYPE html>
         ]
     };
 
-    // 豐富的 DSE 隨機概率題庫模板
     const boosterQuestions = [
         {
             template: "星導卡池5星概率為 {p}%。進行連續 {n} 次單抽，請問【至少抽中一次】5星卡牌的概率是多少%？",
@@ -424,8 +450,7 @@ gacha_html_content = """<!DOCTYPE html>
         {
             template: "構築 5 張牌組，其中包含紅色與藍色水晶卡。若兩者【不可相鄰】，一共有多少種不同的排列方式？(可供選擇的水晶有 {n} 種)",
             calc: (p, n) => {
-                // n P 5 - (n-4)* P(4,3)*2 etc, let's simplify to a strict standard P&C question
-                return (n === 5) ? 72 : 120; // safe random mapping
+                return (n === 5) ? 72 : 120;
             }
         },
         {
@@ -453,9 +478,9 @@ gacha_html_content = """<!DOCTYPE html>
         const qIndex = Math.floor(Math.random() * boosterQuestions.length);
         const q = boosterQuestions[qIndex];
         
-        let p = Math.floor(Math.random() * 2) * 10 + 10; // 10, 20
-        let n = Math.floor(Math.random() * 2) + 2; // 2, 3
-        if (qIndex === 1) { n = 5; } // for P&C template
+        let p = Math.floor(Math.random() * 2) * 10 + 10;
+        let n = Math.floor(Math.random() * 2) + 2;
+        if (qIndex === 1) { n = 5; }
 
         let rawAns = q.calc(p, n);
         currentBoosterAns = parseFloat((rawAns * 100).toFixed(1));
@@ -489,7 +514,6 @@ gacha_html_content = """<!DOCTYPE html>
         }
     }
 
-    // 拖曳下拉石碑
     const stone = document.getElementById('stone');
     const altar = document.getElementById('altar');
     let startY = 0, isDragging = false;
@@ -519,7 +543,6 @@ gacha_html_content = """<!DOCTYPE html>
         }
     });
 
-    // 觸發召喚
     async function triggerSummon() {
         if (gems < 100) {
             alert('😭 寶石不足！請去決鬥場挑戰獲取。');
@@ -530,7 +553,6 @@ gacha_html_content = """<!DOCTYPE html>
         document.getElementById('gemCount').innerText = gems;
         await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
 
-        // 隨機抽選卡牌
         let roll = Math.random();
         let rate5Star = isBoosted ? 0.20 : 0.10;
         let selectedHero = null;
@@ -545,7 +567,6 @@ gacha_html_content = """<!DOCTYPE html>
 
         prepareCard(selectedHero);
 
-        // 同步背包至 Supabase
         const { data } = await supabaseClient.from('student_progress').select('unlocked_cards').eq('student_id', studentId).single();
         let cards = data.unlocked_cards || [];
         if (!cards.includes(selectedHero.name)) {
@@ -562,7 +583,6 @@ gacha_html_content = """<!DOCTYPE html>
         const card = document.getElementById('tcgCard');
         const front = document.getElementById('cardFront');
         
-        // 重置旋轉
         isFlipped = false;
         card.style.transform = "rotateY(0deg)";
         document.getElementById('confirmBtn').style.display = "none";
@@ -574,7 +594,6 @@ gacha_html_content = """<!DOCTYPE html>
         document.getElementById('cardSkillTitle').innerText = `【必殺技】${hero.skill}`;
         document.getElementById('cardSkillDesc').innerText = hero.desc;
 
-        // 套用 Pokemon 亮色主題樣式
         front.className = `card-front ${hero.styleClass}`;
 
         document.getElementById('revealOverlay').style.display = 'flex';
@@ -595,7 +614,6 @@ gacha_html_content = """<!DOCTYPE html>
         document.getElementById('revealOverlay').style.display = 'none';
     }
 
-    // 豪華全息雷射視差效果
     const cardEl = document.getElementById('tcgCard');
     cardEl.addEventListener('mousemove', (e) => {
         if (!isFlipped) return;
@@ -606,7 +624,6 @@ gacha_html_content = """<!DOCTYPE html>
         const rotX = (rect.height/2 - y) / (rect.height / 25);
         cardEl.style.transform = `rotateX(${rotX}deg) rotateY(${180 + rotY}deg)`;
         
-        // 光全息移動
         const px = (x/rect.width)*100;
         const py = (y/rect.height)*100;
         document.getElementById('holoFoil').style.backgroundPosition = `${px}% ${py}%`;
@@ -619,10 +636,9 @@ gacha_html_content = """<!DOCTYPE html>
     initGacha();
 </script>
 </body>
-</html>
-"""
+</html>"""
 
 with open('gacha.html', 'w', encoding='utf-8') as f:
-    f.write(gacha_html_content)
-print("gacha.html saved successfully.")
+    f.write(gacha_v2)
+print("gacha.html v2 saved.")
 
