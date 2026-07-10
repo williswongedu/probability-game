@@ -1,4 +1,4 @@
-deck_dex_html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -211,7 +211,7 @@ deck_dex_html_content = """<!DOCTYPE html>
     <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
 </div>
 
-<script>
+<script {type="text/javascript"}>
     // ==========================================
     // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
     // ==========================================
@@ -267,83 +267,4 @@ deck_dex_html_content = """<!DOCTYPE html>
             cardEl.className = `album-card ${card.styleClass} ${isUnlocked ? 'unlocked' : ''} ${isSelected ? 'selected-for-deck' : ''}`;
             cardEl.innerHTML = `
                 <div style="font-size:11px; font-weight:bold;">${card.type}</div>
-                <div class="album-card-emoji">${card.emoji}</div>
-                <div style="font-size:13px; font-weight:bold;">${card.name}</div>
-                <div style="font-size:11px; color:#aaa; margin-top:5px;">${isUnlocked ? '🔓 已擁有' : '🔒 鎖定中'}</div>
-            `;
-
-            if (isUnlocked) {
-                cardEl.onclick = () => toggleCardInDeck(card.name);
-            }
-
-            grid.appendChild(cardEl);
-        });
-    }
-
-    function toggleCardInDeck(cardName) {
-        const index = selectedDeck.indexOf(cardName);
-        if (index > -1) {
-            // 已選中，則取消選取
-            selectedDeck.splice(index, 1);
-        } else {
-            // 未選中，加入牌組（上限 5 張）
-            if (selectedDeck.length >= 5) {
-                alert('出戰牌組上限為 5 張卡牌！');
-                return;
-            }
-            selectedDeck.push(cardName);
-        }
-
-        updateDeckUI();
-        renderDex('all');
-    }
-
-    function updateDeckUI() {
-        for (let i = 0; i < 5; i++) {
-            const slot = document.getElementById(`slot${i}`);
-            if (i < selectedDeck.length) {
-                const card = fullCardDatabase.find(c => c.name === selectedDeck[i]);
-                slot.innerText = `${card.emoji} ${card.name}`;
-                slot.className = 'slot filled';
-            } else {
-                slot.innerText = `空位 ${i+1}`;
-                slot.className = 'slot';
-            }
-        }
-    }
-
-    async function saveDeckToCloud() {
-        if (selectedDeck.length < 3) {
-            alert('為了保證戰鬥流暢，請至少挑選 3 張卡牌！');
-            return;
-        }
-
-        try {
-            const { error } = await supabaseClient
-                .from('student_progress')
-                .update({ current_deck: selectedDeck })
-                .eq('student_id', studentId);
-
-            if (error) throw error;
-            alert('🎉 出戰牌組儲存成功！已實時同步至雲端戰卡系統！');
-        } catch (e) {
-            alert(`❌ 儲存失敗: ${e.message}`);
-        }
-    }
-
-    function filterType(type) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        renderDex(type);
-    }
-
-    initDex();
-</script>
-</body>
-</html>
-"""
-
-with open('deck_dex.html', 'w', encoding='utf-8') as f:
-    f.write(deck_dex_html_content)
-print("deck_dex.html saved successfully.")
-
+                <div class=
