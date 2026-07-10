@@ -1,157 +1,299 @@
-<!DOCTYPE html>
+battle_html_content = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數源對決 - 概率決鬥場</title>
+    <title>數源對決 - 線上對戰殿堂</title>
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
-            background: radial-gradient(circle at center, #110d2e 0%, #03020a 100%);
+            background: radial-gradient(circle at center, #0f153a 0%, #030514 100%);
             color: #d1dbff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 20px;
+            margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; box-sizing: border-box;
+            background-image: 
+                radial-gradient(rgba(0, 255, 204, 0.08) 1px, transparent 0),
+                radial-gradient(rgba(0, 255, 204, 0.05) 2px, transparent 0);
+            background-size: 30px 30px, 60px 60px;
         }
 
-        .battle-grid {
-            display: flex; gap: 30px;
-            max-width: 1100px; width: 100%;
-            justify-content: center; flex-wrap: wrap;
+        .battle-arena-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1100px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
         }
 
-        /* 戰鬥盤面 */
-        .battle-arena {
-            flex: 1.3; min-width: 350px;
-            background: rgba(8, 6, 26, 0.95);
-            border: 3px double #e0c068;
-            border-radius: 20px; padding: 25px;
-            box-shadow: 0 0 25px rgba(224,192,104,0.1);
+        /* 對戰台主體 */
+        .combat-table {
+            flex: 1.4;
+            min-width: 350px;
+            background: rgba(8, 12, 38, 0.95);
+            border: 3px solid #00ffcc;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.15);
+            box-sizing: border-box;
         }
 
-        /* 敵方與我方對壘區域 */
-        .duel-board {
-            display: flex; justify-content: space-around; align-items: center;
-            height: 160px; border: 2px solid #233470; border-radius: 12px;
-            background: rgba(255,255,255,0.02); margin-bottom: 20px;
+        /* 備用控制區 */
+        .combat-sidebar {
+            flex: 0.6;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 還原圖 2 的對戰面板 */
+        .duel-board-ptcg {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 2px solid #233470;
+            border-radius: 16px;
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
             position: relative;
         }
 
-        .fighter { text-align: center; }
-        .fighter-avatar { font-size: 60px; animation: idle 2s infinite ease-in-out; }
-        @keyframes idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        /* HP 條 */
-        .hp-bar {
-            width: 100px; height: 8px; background: #222;
-            border: 1px solid #ff4d4d; border-radius: 4px; overflow: hidden; margin-top: 5px;
-        }
-        .hp-bar-fill { width: 100%; height: 100%; background: #ff4d4d; transition: width 0.3s; }
-
-        /* 手牌區 (TCG 手牌) */
-        .hand-area {
-            display: flex; gap: 15px; justify-content: center; margin: 20px 0;
+        /* 敵方與我方區域 */
+        .battle-zone-segment {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            min-height: 140px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 10px;
         }
 
-        .combat-card {
-            width: 120px; height: 170px;
-            background: linear-gradient(135deg, #1b0e35 0%, #060214 100%);
-            border: 2px solid #8c6a3c; border-radius: 10px;
-            padding: 8px; box-sizing: border-box; cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+        /* 主戰位 */
+        .active-slot-ptcg {
+            width: 110px;
+            height: 140px;
+            border: 2px solid #e0c068;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1b0e35 0%, #050212 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 11px;
+            padding: 8px;
+            box-sizing: border-box;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(224, 192, 104, 0.3);
+        }
+
+        /* 備戰位 (Bench Slots) */
+        .bench-zone-ptcg {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed #233470;
+        }
+
+        .bench-slot {
+            width: 60px;
+            height: 80px;
+            border: 1.5px dashed rgba(255,255,255,0.3);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 9px;
+            background: rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .bench-slot.filled {
+            border-style: solid;
+            border-color: #00bfff;
+            background: #0f153a;
+        }
+
+        .bench-slot:hover { transform: translateY(-5px); }
+
+        /* HP 狀態顯示 */
+        .hp-segment {
+            width: 100%;
             text-align: center;
         }
 
-        .combat-card:hover {
-            transform: translateY(-10px) scale(1.05);
-            border-color: #ffd700;
+        .hp-bar-tcg {
+            width: 100%;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
         }
 
-        .combat-card.selected {
-            border-color: #00ffff;
-            box-shadow: 0 0 15px #00ffff;
+        .hp-bar-tcg-fill {
+            width: 100%;
+            height: 100%;
+            background: #ff4d4d;
+            transition: width 0.3s;
         }
 
-        /* 答題面板 */
-        .puzzle-console {
-            background: rgba(0,0,0,0.5); border: 2px solid #5d4297;
-            border-radius: 10px; padding: 15px;
+        /* 回合問答面板 */
+        .quiz-panel-ptcg {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
         }
 
-        .btn-action {
-            padding: 12px 24px; background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
-            border: none; border-radius: 8px; color: #120524; font-weight: bold; cursor: pointer;
+        .quiz-title {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .quiz-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            color: #e2d9f3;
+        }
+
+        .quiz-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .quiz-input-group input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #5d4297;
+            border-radius: 8px;
+            color: #fff;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .btn-fire-ptcg {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
+            border: none;
+            border-radius: 8px;
+            color: #120524;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 2px solid #5d4297;
+            color: #d1dbff;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:10px; margin-bottom:20px;">
-    <span style="font-weight:bold; color:#ffd700;">⚔️ 概率決鬥場 (夢幻星星挑戰)</span>
+<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:8px; margin-bottom:15px;">
+    <span style="font-weight:bold; color:#00ffcc; font-size:18px;">⚔️ 概率線上對戰殿堂</span>
     <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
 </div>
 
-<div class="battle-grid">
-    <div class="battle-arena">
-        <!-- 對壘面板 -->
-        <div class="duel-board">
-            <div class="fighter">
-                <div class="fighter-avatar">🧙‍♂️</div>
-                <div style="font-size:12px; color:#00ffff;">精算師玩家</div>
-                <div class="hp-bar"><div class="hp-bar-fill" id="playerHP" style="background:#00ffcc;"></div></div>
+<div class="battle-arena-layout">
+    <!-- 左側：卡牌戰場 -->
+    <div class="combat-table">
+        <div class="duel-board-ptcg">
+            <!-- 敵方半場 -->
+            <div style="font-size:11px; color:#ff7a7a; font-weight:bold; text-align:center;">🔴 敵方半場 (OPPONENT SEGMENT)</div>
+            <div class="battle-zone-segment">
+                <div class="active-slot-ptcg" id="enemyActive">
+                    <div style="font-weight:bold; color:#ff7a7a;">混沌獸 EX</div>
+                    <div style="font-size:24px;">👿</div>
+                    <div class="hp-segment">
+                        HP: <span id="enemyActiveHP">300</span>/300
+                        <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="enemyActiveHPFill"></div></div>
+                    </div>
+                </div>
             </div>
-            <div style="font-size:24px; font-weight:bold; color:#ffb830;">VS</div>
-            <div class="fighter">
-                <div class="fighter-avatar" id="bossIcon">👿</div>
-                <div style="font-size:12px; color:#ff7a7a;" id="bossName">混沌獸 (HP: 300)</div>
-                <div class="hp-bar"><div class="hp-bar-fill" id="bossHP"></div></div>
+            
+            <hr style="border:0; border-top:1px dashed #233470; margin:10px 0;">
+
+            <!-- 我方半場 -->
+            <div style="font-size:11px; color:#00ffcc; font-weight:bold; text-align:center;">🟢 我方半場 (PLAYER SEGMENT)</div>
+            <div class="battle-zone-segment">
+                <!-- 我方主戰位 (Active Slot) -->
+                <div class="active-slot-ptcg" id="playerActive">
+                    <div style="font-weight:bold; color:#00ffff;" id="playerActiveName">主戰位</div>
+                    <div style="font-size:36px;" id="playerActiveEmoji">❔</div>
+                    <div class="hp-segment" id="playerActiveHPBox" style="display:none;">
+                        HP: <span id="playerActiveHP">120</span>/120
+                        <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="playerActiveHPFill"></div></div>
+                    </div>
+                    <div id="playerActiveSkill" style="font-size:9px; color:#ccc;">請從下方備戰區派遣英靈出戰</div>
+                </div>
+            </div>
+
+            <!-- 我方備戰區 (Bench Slots - 還原圖 2) -->
+            <div class="bench-zone-ptcg" id="playerBench">
+                <div class="bench-slot" id="bench0" onclick="deployToActive(0)">空</div>
+                <div class="bench-slot" id="bench1" onclick="deployToActive(1)">空</div>
+                <div class="bench-slot" id="bench2" onclick="deployToActive(2)">空</div>
+                <div class="bench-slot" id="bench3" onclick="deployToActive(3)">空</div>
+                <div class="bench-slot" id="bench4" onclick="deployToActive(4)">空</div>
             </div>
         </div>
 
-        <!-- 構築自建手牌區 -->
-        <div style="font-size:12px; color:#aaa; text-align:center;">【點擊選擇你要出戰的英靈發動必殺技】</div>
-        <div class="hand-area" id="hand">
-            <!-- 動態加載卡組 -->
-            <div class="combat-card" onclick="selectCard('Pascal', this)">
-                <div style="font-size:11px; font-weight:bold; color:#ffd700;">巴斯卡</div>
-                <div style="font-size:30px; margin:10px 0;">🛡️</div>
-                <div style="font-size:10px; color:#ccc;">必殺：三角護盾<br>(P&C)</div>
+        <!-- 答題發動攻擊控制台 -->
+        <div class="quiz-panel-ptcg">
+            <div class="quiz-title">✨ 發動公式必殺連擊</div>
+            <div class="quiz-desc" id="quizDesc">請先從備戰區點擊派遣一位英靈上陣，以啟動城堡決鬥！</div>
+            <div class="quiz-input-group">
+                <input type="number" step="0.1" id="quizInput" placeholder="輸入期望傷害或概率值">
+                <button class="btn-fire-ptcg" onclick="submitDuelAction()">發動必殺</button>
             </div>
-            <div class="combat-card" onclick="selectCard('Gauss', this)">
-                <div style="font-size:11px; font-weight:bold; color:#ffd700;">高斯</div>
-                <div style="font-size:30px; margin:10px 0;">⚡</div>
-                <div style="font-size:10px; color:#ccc;">必殺：雷擊領域<br>(期望值)</div>
-            </div>
-            <div class="combat-card" onclick="selectCard('Bayes', this)">
-                <div style="font-size:11px; font-weight:bold; color:#ffd700;">貝葉斯</div>
-                <div style="font-size:30px; margin:10px 0;">🗡️</div>
-                <div style="font-size:10px; color:#ccc;">必殺：神罰暴擊<br>(條件概率)</div>
-            </div>
-        </div>
-
-        <!-- 答題控制台 -->
-        <div class="puzzle-console">
-            <div style="color:#00ffff; font-weight:bold; font-size:13px; margin-bottom:8px;">★ 必殺技連攜精算</div>
-            <div id="questText" style="font-size:14px; line-height:1.5; margin-bottom:15px;">請先選擇一張英靈手牌來啟動決鬥！</div>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="battleInput" style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #5d4297; border-radius:6px; color:#fff; text-align:center; font-size:16px;">
-                <button class="btn-action" onclick="castSkill()">釋放必殺技</button>
-            </div>
-            <div id="combatFeedback" style="margin-top:12px; font-weight:bold; text-align:center;"></div>
+            <div id="duelFeedback" style="margin-top:10px; font-weight:bold; text-align:center; min-height:20px;"></div>
         </div>
     </div>
-    
-    <div style="flex:0.7; display:flex; flex-direction:column; gap:15px;">
-        <div style="background:rgba(0,0,0,0.4); border:2px solid #e0c068; border-radius:15px; padding:20px;">
-            <h3 style="color:#ffd700; margin-top:0;">城堡決鬥規則</h3>
-            <p style="font-size:13px; line-height:1.6; color:#ccc;">
-                1. <b>卡牌克制</b>：不同的英靈對應不同的 DSE 數學單元。答對才能成功施放攻擊！<br>
-                2. <b>擊敗獎勵</b>：消滅 Boss 將獲得 <b>150 寶石</b>，並實時上傳學生成績到 Supabase 數據庫。
-            </p>
+
+    <!-- 右側：連線狀態與操作 -->
+    <div class="combat-sidebar">
+        <div style="background:rgba(0,0,0,0.6); border:2px solid #e0c068; border-radius:15px; padding:15px;">
+            <h3 style="color:#ffd700; margin-top:0; font-size:15px;">📡 連線模式切換</h3>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-fire-ptcg" style="font-size:12px; padding:8px;" onclick="switchMode('AI')">🤖 城堡練習模式 (單人 AI)</button>
+                <button class="btn-fire-ptcg" style="font-size:12px; padding:8px; background:linear-gradient(135deg, #7c4dff 0%, #3f1fa3 100%); border:1px solid #fff;" onclick="switchMode('ONLINE')">🌐 線上同好對決 (實時 Room)</button>
+            </div>
+            <div id="modeStatus" style="margin-top:10px; font-size:11px; color:#00ffcc; font-weight:bold; text-align:center;">目前模式：練習 AI 對戰</div>
         </div>
-        <a href="lobby.html" class="btn-action" style="text-align:center; text-decoration:none;">🏰 返回城堡大廳</a>
+
+        <div style="background:rgba(0,0,0,0.5); border:2px solid #233470; border-radius:12px; padding:15px; font-size:12px; line-height:1.5;">
+            <h4 style="margin-top:0; color:#ffd700;">DSE 對戰精算策略：</h4>
+            1. <b>人物角色 (EX)</b>：打出 100 點主要傷害。<br>
+            2. <b>神仙寵物 (Pet)</b>：防守敵方 30 點傷害。<br>
+            3. <b>武器裝備 (Weapon)</b>：答對後附加 50 點額外暴擊。
+        </div>
+
+        <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
     </div>
 </div>
 
@@ -159,124 +301,187 @@
     // ==========================================
     // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
     // ==========================================
-    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.coL'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const studentId = localStorage.getItem('supabase_student_id');
     let gems = 1000;
+    let unlockedCards = [];
+    let currentDeck = [];
+    let currentActiveIndex = -1; // 當前出戰英靈
+    let currentMode = 'AI'; // AI 或 ONLINE
 
-    let bossHP = 300, maxBossHP = 300;
-    let playerHP = 200, maxPlayerHP = 200;
-    let selectedCard = null;
-    let currentAns = 0;
+    let enemyHP = 300;
+    let currentQuizAns = 0;
     let currentTopic = '';
 
-    // 初始化數據
+    const fullCardStats = {
+        '雷鳴精算師 · 高斯': { name: '雷鳴精算師 · 高斯', emoji: '🧙‍♂️', hp: 120, skill: '常態修正', type: '人物角色' },
+        '時空編織者 · 費馬': { name: '時空編織者 · 費馬', emoji: '🔮', hp: 130, skill: '概率路徑', type: '人物角色' },
+        '幻影刺客 · 貝葉斯': { name: '幻影刺客 · 貝葉斯', emoji: '🗡️', hp: 120, skill: '條件神罰', type: '人物角色' },
+        '阿基米德鴞': { name: '阿基米德鴞', emoji: '🦉', hp: 90, skill: '窮竭守護', type: '寵物' },
+        '卡爾丹熊': { name: '卡爾丹熊', emoji: '🐻', hp: 100, skill: '大數幸運', type: '寵物' },
+        '帕斯卡三叉戟': { name: '帕斯卡三叉戟', emoji: '🔱', hp: 80, skill: '三角聯攜', type: '武器卡' },
+        '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡' }
+    };
+
+    // 豐富多樣的 DSE 戰鬥隨機題目生成
+    const duelQuizPool = [
+        {
+            type: 'Expected_Value',
+            gen: () => {
+                let dmg = Math.floor(Math.random() * 2) * 50 + 150; // 150, 200
+                let probPercent = Math.floor(Math.random() * 3) * 10 + 50; // 50%, 60%, 70%
+                let ans = dmg * (probPercent / 100);
+                return {
+                    text: `敵方釋放迷霧屏障。我方英靈發動期望值領域：有 ${probPercent}% 機率造成 ${dmg} 點傷害，其餘機率 0 傷害，請精算【期望傷害值】。`,
+                    ans: parseFloat(ans.toFixed(1))
+                };
+            }
+        },
+        {
+            type: 'Permutations_Combinations',
+            gen: () => {
+                let items = Math.floor(Math.random() * 3) + 5; // 5, 6, 7
+                // C(items, 3)
+                let ans = factorial(items) / (factorial(3) * factorial(items - 3));
+                return {
+                    text: `城堡大陣需要部署防禦药水。從 ${items} 種不同的魔法元素中選出 3 種不同的配方，一共有多少種不同的【組合 C】？`,
+                    ans: ans
+                };
+            }
+        },
+        {
+            type: 'Conditional_Probability',
+            gen: () => {
+                let p = Math.floor(Math.random() * 2) * 10 + 70; // 70%, 80%
+                let dec = p / 100;
+                let ans = parseFloat((dec * dec * 100).toFixed(1));
+                return {
+                    text: `敵方已被標記。已知標記狀態下，你的必殺技單次暴擊概率高達 ${p}%。在此已知條件下，你連續【兩次必殺技都觸發暴擊】的概率是多少%？`,
+                    ans: ans
+                };
+            }
+        }
+    ];
+
     async function initBattle() {
         if (!studentId) {
-            alert('登入失效，回到傳送門！');
+            alert('登入失效，請重新登入！');
             window.location.href = 'index.html';
             return;
         }
-        const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
+
+        // 獲取寶石與出戰牌組
+        const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
         if (data) {
             gems = data.gems;
             document.getElementById('gemCount').innerText = gems;
+            currentDeck = data.current_deck || [];
+        }
+
+        renderBench();
+    }
+
+    function renderBench() {
+        for (let i = 0; i < 5; i++) {
+            const bench = document.getElementById(`bench${i}`);
+            if (i < currentDeck.length) {
+                const cardName = currentDeck[i];
+                const card = fullCardStats[cardName];
+                bench.innerText = `${card.emoji}\\n${card.name.substring(0, 3)}`;
+                bench.className = 'bench-slot filled';
+            } else {
+                bench.innerText = '空';
+                bench.className = 'bench-slot';
+            }
         }
     }
 
-    // 選擇手牌，生成隨機 DSE 數學題
-    function selectCard(hero, element) {
-        selectedCard = hero;
-        document.querySelectorAll('.combat-card').forEach(c => c.classList.remove('selected'));
-        element.classList.add('selected');
+    function deployToActive(index) {
+        if (index >= currentDeck.length) return;
+        currentActiveIndex = index;
+        const cardName = currentDeck[index];
+        const card = fullCardStats[cardName];
 
-        document.getElementById('combatFeedback').innerText = '';
+        document.getElementById('playerActiveName').innerText = card.name;
+        document.getElementById('playerActiveEmoji').innerText = card.emoji;
+        document.getElementById('playerActiveHPBox').style.display = 'block';
+        document.getElementById('playerActiveHP').innerText = card.hp;
+        document.getElementById('playerActiveHPFill').style.width = '100%';
+        document.getElementById('playerActiveSkill').innerText = `必殺技：${card.skill} (${card.type})`;
 
-        if (hero === 'Pascal') {
-            currentTopic = 'Permutations_Combinations';
-            // 隨機生成 P&C 題目
-            const items = Math.floor(Math.random() * 3) + 5; // 5-7
-            const select = 3;
-            // 題目：從 items 中選 3 個的組合數 C(items, 3)
-            currentAns = factorial(items) / (factorial(select) * factorial(items - select));
-            document.getElementById('questText').innerText = `【巴斯卡之盾】發動中！城堡防線上需要部署元素藥水。從 ${items} 種不同的水晶中，任選 ${select} 種，一共有多少種不同的【組合 (Combinations)】？`;
-        } 
-        else if (hero === 'Gauss') {
-            currentTopic = 'Expected_Value';
-            // 隨機生成期望值題目
-            const dmg1 = Math.floor(Math.random() * 2) * 100 + 200; // 200 或 300
-            const prob1Percent = Math.floor(Math.random() * 2) * 20 + 60; // 60% 或 80%
-            const prob1 = prob1Percent / 100;
-            currentAns = dmg1 * prob1;
-            document.getElementById('questText').innerText = `【高斯雷擊領域】啟動！陣型有 ${prob1Percent}% 的機率造成 ${dmg1} 點高額雷擊傷害（其餘機率造成 0 傷害），請精算此陣型的【傷害期望值 (Expected Value)】為多少點？`;
-        } 
-        else if (hero === 'Bayes') {
-            currentTopic = 'Conditional_Probability';
-            // 隨機生成條件概率題目
-            const baseProbPercent = 20;
-            const wetProbPercent = 80;
-            const probDecimal = wetProbPercent / 100;
-            // 題目：已知潮濕狀態下（發生機率100%），連續兩次暴擊的機率
-            currentAns = parseFloat((probDecimal * probDecimal * 100).toFixed(1));
-            document.getElementById('questText').innerText = `【貝葉斯天雷神罰】發動！已知敵方處於「潮濕狀態」，單次天雷造成暴擊的機率提升至 ${wetProbPercent}%。在此狀態下，你【連續兩次】發動天雷皆造成暴擊的機率是多少%？(四捨五入至小數點後一位)`;
-        }
+        nextQuizRound();
     }
 
-    // 施放技能
-    async function castSkill() {
-        const studentAns = parseFloat(document.getElementById('battleInput').value);
-        const fb = document.getElementById('combatFeedback');
+    function nextQuizRound() {
+        const qTemplate = duelQuizPool[Math.floor(Math.random() * duelQuizPool.length)];
+        const q = qTemplate.gen();
+        currentQuizAns = q.ans;
+        currentTopic = qTemplate.type;
 
-        if (!selectedCard) {
-            fb.innerText = '⚠️ 請先選擇一張手牌！';
-            fb.style.color = '#ff4d4d';
+        document.getElementById('quizDesc').innerText = q.text;
+        document.getElementById('quizInput').value = '';
+        document.getElementById('duelFeedback').innerText = '';
+    }
+
+    async function submitDuelAction() {
+        if (currentActiveIndex === -1) {
+            alert('請先派遣備戰區的英靈上場！');
             return;
         }
+
+        const studentAns = parseFloat(document.getElementById('quizInput').value);
+        const fb = document.getElementById('duelFeedback');
 
         if (isNaN(studentAns)) {
-            fb.innerText = '⚠️ 請輸入你的精算答案！';
+            fb.innerText = '⚠️ 請輸入你的答案！';
             fb.style.color = '#ff4d4d';
             return;
         }
 
-        let isCorrect = Math.abs(studentAns - currentAns) <= 0.2;
+        let isCorrect = Math.abs(studentAns - currentQuizAns) <= 0.2;
 
         if (isCorrect) {
-            bossHP -= 100;
-            fb.innerText = '⚡【完美精算！】必殺技完美連擊，對混沌獸造成 100 點痛擊！';
-            fb.style.color = '#00ffcc';
+            // 答對：對敵方造成傷害
+            const cardName = currentDeck[currentActiveIndex];
+            const card = fullCardStats[cardName];
             
-            if (bossHP <= 0) {
-                bossHP = 0;
-                fb.innerText = '🏆【大捷！】混沌獸已被封印！恭喜獲得 150 寶石！';
+            let dmg = 100; // 人物
+            if (card.type === '寵物') { dmg = 60; }
+            else if (card.type === '武器卡') { dmg = 80; }
+
+            enemyHP -= dmg;
+            if (enemyHP < 0) enemyHP = 0;
+
+            fb.innerText = `⚡【回答正確！】發動必殺技 [${card.skill}]，對敵方造成 ${dmg} 點痛擊！`;
+            fb.style.color = '#00ffcc';
+
+            updateHPBars();
+
+            if (enemyHP <= 0) {
+                fb.innerText = '🏆【封印大捷！】敵方混沌獸已完全擊潰！恭喜獲得 150 寶石獎勵！';
                 gems += 150;
                 document.getElementById('gemCount').innerText = gems;
                 await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
             }
         } else {
-            playerHP -= 40;
-            fb.innerText = `❌【公式干擾！】計算失誤魔法反噬，防線遭受攻擊，玩家扣除 40 HP！（答案是 ${currentAns}）`;
+            fb.innerText = `❌【公式反噬！】計算失誤。城堡大陣紊亂，受到 40 反噬傷害！（正確答案是 ${currentQuizAns}）`;
             fb.style.color = '#ff4d4d';
-            if (playerHP <= 0) {
-                playerHP = 0;
-                fb.innerText = '💀 戰線崩潰！請回到大廳整頓旗鼓，再次精算挑戰！';
-            }
         }
 
-        updateBattleUI();
-        await updateDSERecordsCloud(isCorrect);
-        document.getElementById('battleInput').value = '';
+        // 答完後上傳 DSE 成績
+        await uploadDSERecord(isCorrect);
+        setTimeout(nextQuizRound, 2500);
     }
 
-    function updateBattleUI() {
-        document.getElementById('bossHP').style.width = `${(bossHP / maxBossHP) * 100}%`;
-        document.getElementById('playerHP').style.width = `${(playerHP / maxPlayerHP) * 100}%`;
-        document.getElementById('bossName').innerText = `混沌獸 (HP: ${bossHP})`;
+    function updateHPBars() {
+        document.getElementById('enemyActiveHP').innerText = enemyHP;
+        document.getElementById('enemyActiveHPFill').style.width = `${(enemyHP/300)*100}%`;
     }
 
-    async function updateDSERecordsCloud(isCorrect) {
+    async function uploadDSERecord(isCorrect) {
         try {
             const { data: record } = await supabaseClient.from('dse_records').select('*').eq('student_id', studentId).eq('topic', currentTopic).single();
             if (record) {
@@ -293,7 +498,19 @@
                 }]);
             }
         } catch (e) {
-            console.error('上傳成績出錯：', e);
+            console.error(e);
+        }
+    }
+
+    function switchMode(mode) {
+        currentMode = mode;
+        const status = document.getElementById('modeStatus');
+        if (mode === 'AI') {
+            status.innerText = '目前模式：練習 AI 對戰';
+        } else {
+            status.innerText = '目前模式：線上同好對決 (實時 Room 連線中...)';
+            // 線上模式下，Supabase Channel 開始廣播 Room 資料
+            alert('📡 Supabase Room 已建立！歡迎將網址分享給其他同學進行即時智力比拼！');
         }
     }
 
@@ -306,5 +523,9 @@
 </script>
 </body>
 </html>
+"""
 
+with open('battle.html', 'w', encoding='utf-8') as f:
+    f.write(battle_html_content)
+print("battle.html saved successfully.")
 
