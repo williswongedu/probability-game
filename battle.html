@@ -1,13 +1,14 @@
-battle_v2 = """<!DOCTYPE html>
+battle_html_v3 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 線上對戰殿堂</title>
+    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --stadium-bg: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=1600&auto=format&fit=crop'); /* 魔法星光背景 */
+            --stadium-bg: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=1600&auto=format&fit=crop');
         }
 
         body {
@@ -21,7 +22,6 @@ battle_v2 = """<!DOCTYPE html>
             position: relative;
         }
 
-        /* 對戰背景視差層 */
         .battle-stadium-bg {
             position: absolute;
             top: -5%; left: -5%;
@@ -44,7 +44,6 @@ battle_v2 = """<!DOCTYPE html>
             z-index: 10;
         }
 
-        /* 對戰台主體：傾斜 3D 視角設計 */
         .combat-table {
             flex: 1.4;
             min-width: 350px;
@@ -57,7 +56,6 @@ battle_v2 = """<!DOCTYPE html>
             backdrop-filter: blur(5px);
         }
 
-        /* 3D 表格傾斜 */
         .duel-board-ptcg {
             display: flex;
             flex-direction: column;
@@ -67,10 +65,9 @@ battle_v2 = """<!DOCTYPE html>
             background: rgba(0,0,0,0.5);
             padding: 20px;
             position: relative;
-            perspective: 1000px; /* 立體桌面透視 */
+            perspective: 1000px;
         }
 
-        /* 3D 斜切對壘 Segments */
         .battle-zone-segment {
             display: flex;
             justify-content: space-around;
@@ -79,12 +76,11 @@ battle_v2 = """<!DOCTYPE html>
             background: linear-gradient(170deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.04) 100%);
             border-radius: 12px;
             padding: 10px;
-            transform: rotateX(15deg); /* Tilted Tabletop stadium effect like PTCGP! */
+            transform: rotateX(15deg);
             transform-style: preserve-3d;
             box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        /* 浮空 3D 主戰牌位 */
         .active-slot-ptcg {
             width: 110px;
             height: 150px;
@@ -100,12 +96,11 @@ battle_v2 = """<!DOCTYPE html>
             box-sizing: border-box;
             text-align: center;
             box-shadow: 0 15px 25px rgba(0, 0, 0, 0.7);
-            transform: translateZ(30px); /* Lift cards in 3D space */
+            transform: translateZ(30px);
             transform-style: preserve-3d;
             transition: all 0.3s;
         }
 
-        /* 備戰席 (Bench Slots) */
         .bench-zone-ptcg {
             display: flex;
             gap: 10px;
@@ -149,7 +144,6 @@ battle_v2 = """<!DOCTYPE html>
             border-color: #00ffcc;
         }
 
-        /* HP 能量條 */
         .hp-segment {
             width: 100%;
             text-align: center;
@@ -172,7 +166,6 @@ battle_v2 = """<!DOCTYPE html>
             transition: width 0.3s;
         }
 
-        /* 回合問答控制面板 */
         .quiz-panel-ptcg {
             background: rgba(0,0,0,0.65);
             border: 2px solid #00ffcc;
@@ -252,7 +245,7 @@ battle_v2 = """<!DOCTYPE html>
 
 <div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:8px; margin-bottom:15px; z-index:10;">
     <span style="font-weight:bold; color:#00ffcc; font-size:18px;">⚔️ 概率線上對戰殿堂</span>
-    <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
+    <span>💎 擁有寶石：<span id="gemCount">0</span></span>
 </div>
 
 <div class="battle-arena-layout">
@@ -276,7 +269,6 @@ battle_v2 = """<!DOCTYPE html>
             <!-- 我方半場 -->
             <div style="font-size:11px; color:#00ffcc; font-weight:bold; text-align:center;">🟢 我方半場 (PLAYER SEGMENT)</div>
             <div class="battle-zone-segment">
-                <!-- 我方主戰位 (Active Slot) -->
                 <div class="active-slot-ptcg" id="playerActive">
                     <div style="font-weight:bold; color:#00ffff;" id="playerActiveName">主戰位</div>
                     <div style="font-size:40px; transform: translateZ(15px);" id="playerActiveEmoji">❔</div>
@@ -288,7 +280,7 @@ battle_v2 = """<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 我方備戰區 (Bench Slots - 還原圖 2) -->
+            <!-- 我方備戰區 -->
             <div class="bench-zone-ptcg" id="playerBench">
                 <div class="bench-slot" id="bench0" onclick="deployToActive(0)">空</div>
                 <div class="bench-slot" id="bench1" onclick="deployToActive(1)">空</div>
@@ -298,7 +290,6 @@ battle_v2 = """<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- 答題發動攻擊控制台 -->
         <div class="quiz-panel-ptcg">
             <div class="quiz-title">✨ 發動公式必殺連擊</div>
             <div class="quiz-desc" id="quizDesc">請先從備戰區點擊派遣一位英靈上陣，以啟動城堡決鬥！</div>
@@ -310,7 +301,6 @@ battle_v2 = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 右側：連線狀態與操作 -->
     <div class="combat-sidebar">
         <div style="background:rgba(0,0,0,0.6); border:2px solid #e0c068; border-radius:15px; padding:15px;">
             <h3 style="color:#ffd700; margin-top:0; font-size:15px;">📡 連線模式切換</h3>
@@ -335,10 +325,16 @@ battle_v2 = """<!DOCTYPE html>
 <script>
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
+    let supabaseClient = null;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     const studentId = localStorage.getItem('supabase_student_id');
-    let gems = 1000;
+    const studentName = localStorage.getItem('supabase_student_name');
+    let gems = 0;
     let unlockedCards = [];
     let currentDeck = [];
     let currentActiveIndex = -1; 
@@ -358,7 +354,6 @@ battle_v2 = """<!DOCTYPE html>
         '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡' }
     };
 
-    // 視差跟隨效果
     const parallaxStadium = document.getElementById('parallaxStadium');
     window.addEventListener('mousemove', (e) => {
         const x = (window.innerWidth / 2 - e.clientX) / 45;
@@ -411,28 +406,41 @@ battle_v2 = """<!DOCTYPE html>
             return;
         }
 
-        const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
-        if (data) {
-            gems = data.gems;
-            document.getElementById('gemCount').innerText = gems;
-            currentDeck = data.current_deck || [];
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            let user = users[studentName];
+            if (user) {
+                gems = user.gems;
+                currentDeck = user.current_deck || [];
+            }
+        } else {
+            const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
+            if (data) {
+                gems = data.gems;
+                currentDeck = data.current_deck || [];
+            }
         }
 
+        document.getElementById('gemCount').innerText = gems;
         renderBench();
     }
 
     function renderBench() {
+        const benchContainer = document.getElementById('playerBench');
+        benchContainer.innerHTML = '';
         for (let i = 0; i < 5; i++) {
-            const bench = document.getElementById(`bench${i}`);
+            const bench = document.createElement('div');
             if (i < currentDeck.length) {
                 const cardName = currentDeck[i];
                 const card = fullCardStats[cardName];
                 bench.innerText = `${card.emoji}\\n${card.name.substring(0, 3)}`;
                 bench.className = 'bench-slot filled';
+                bench.onclick = () => deployToActive(i);
             } else {
                 bench.innerText = '空';
                 bench.className = 'bench-slot';
             }
+            benchContainer.appendChild(bench);
         }
     }
 
@@ -500,10 +508,19 @@ battle_v2 = """<!DOCTYPE html>
                 fb.innerText = '🏆【封印大捷！】敵方混沌獸已完全擊潰！恭喜獲得 150 寶石獎勵！';
                 gems += 150;
                 document.getElementById('gemCount').innerText = gems;
-                await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+
+                if (isLocalMode) {
+                    let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+                    if (users[studentName]) {
+                        users[studentName].gems = gems;
+                        localStorage.setItem('local_users', JSON.stringify(users));
+                    }
+                } else {
+                    await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+                }
             }
         } else {
-            fb.innerText = `❌【公式反噬！】計算失誤。城堡大陣紊亂，受到 40 反噬傷害！（正確答案是 ${currentQuizAns}）`;
+            fb.innerText = `❌【公式反噬！】計算失誤。受到 40 反噬傷害！（正確答案是 ${currentQuizAns}）`;
             fb.style.color = '#ff4d4d';
         }
 
@@ -517,6 +534,7 @@ battle_v2 = """<!DOCTYPE html>
     }
 
     async function uploadDSERecord(isCorrect) {
+        if (isLocalMode) return; // 本地測試免存成績
         try {
             const { data: record } = await supabaseClient.from('dse_records').select('*').eq('student_id', studentId).eq('topic', currentTopic).single();
             if (record) {
@@ -559,6 +577,7 @@ battle_v2 = """<!DOCTYPE html>
 </html>"""
 
 with open('battle.html', 'w', encoding='utf-8') as f:
-    f.write(battle_v2)
-print("battle.html v2 saved.")
+    f.write(battle_html_v3)
+
+print("battle.html updated with sync + fallback.")
 
