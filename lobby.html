@@ -12,8 +12,7 @@
             background: radial-gradient(circle at center, #1b153a 0%, #0a0618 100%);
             color: #d3c7f3;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -58,32 +57,31 @@
         /* 城堡主體標題：夢幻哥德風 */
         .castle-main {
             text-align: center;
-            margin-top: 50px;
+            margin-top: 30px;
             z-index: 10;
         }
 
         h1.castle-title {
-            font-size: 42px;
+            font-size: 38px;
             color: #f6e6be;
             margin: 0;
             text-shadow: 0 0 15px rgba(246, 230, 190, 0.5), 0 0 30px rgba(109, 58, 238, 0.6);
             font-family: 'Georgia', serif;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
         }
 
         p.castle-subtitle {
-            font-size: 16px;
+            font-size: 14px;
             color: #9d8eff;
-            margin-top: 10px;
+            margin-top: 8px;
             letter-spacing: 1px;
-            text-shadow: 0 0 8px rgba(157, 142, 255, 0.4);
         }
 
         /* 關卡選擇區：漂浮卡牌 */
         .portal-zone {
             display: flex;
-            gap: 50px;
-            margin-top: 60px;
+            gap: 30px;
+            margin-top: 40px;
             justify-content: center;
             flex-wrap: wrap;
             padding: 20px;
@@ -91,76 +89,59 @@
 
         /* 夢幻城堡黃金大卡牌 */
         .portal-card {
-            width: 280px;
-            height: 400px;
+            width: 250px;
+            height: 360px;
             background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
-            border: 4px solid #e0c068; /* 玫瑰金/黃金雕花框 */
+            border: 3px solid #e0c068; /* 玫瑰金雕花框 */
             border-radius: 20px;
             position: relative;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(224, 192, 104, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 25px;
+            padding: 20px;
             box-sizing: border-box;
         }
 
         /* 懸停時：卡牌浮起並散發夢幻霓虹光芒 */
         .portal-card:hover {
-            transform: translateY(-15px) scale(1.03);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 35px rgba(157, 142, 255, 0.6);
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(157, 142, 255, 0.5);
             border-color: #fff;
         }
 
         /* 夢幻城堡插畫區域 */
         .card-illustration {
             width: 100%;
-            height: 180px;
+            height: 140px;
             border-radius: 12px;
             border: 2px solid #856a37;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 70px;
+            font-size: 60px;
             background: radial-gradient(circle, #2d1854 0%, #0d061c 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* 漂浮魔法圈效果 */
-        .card-illustration::before {
-            content: '';
-            position: absolute;
-            width: 150px;
-            height: 150px;
-            border: 1px dashed rgba(157, 142, 255, 0.3);
-            border-radius: 50%;
-            animation: rotate-magic 10s linear infinite;
-        }
-
-        @keyframes rotate-magic {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
 
         .portal-name {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
             color: #ffd700;
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-            margin-top: 15px;
+            margin-top: 10px;
+            text-align: center;
         }
 
         .portal-desc {
-            font-size: 13px;
+            font-size: 11px;
             color: #a49fc4;
             text-align: center;
             line-height: 1.4;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .btn-enter {
@@ -170,10 +151,9 @@
             padding: 8px 24px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            margin-top: 15px;
-            box-shadow: 0 0 10px rgba(224, 192, 104, 0.4);
+            margin-top: 10px;
         }
 
         .btn-logout {
@@ -212,28 +192,36 @@
 
 <!-- 傳送門卡牌區 -->
 <div class="portal-zone">
-    <!-- 關卡一卡牌：修改為跳轉 gacha.html -->
+    <!-- 傳送門一：星導召喚神殿 (gacha.html) -->
     <div class="portal-card" onclick="navigateTo('gacha.html')">
         <div class="card-illustration">🔮</div>
         <div>
             <div class="portal-name">星導召喚神殿</div>
-            <div class="portal-desc">解鎖「Plan B 爆率加成」，拖曳召喚石碑，抽取 DSE 傳奇數學英靈閃卡！</div>
+            <div class="portal-desc">解鎖「Plan B 爆率加成」，拉動召喚石碑，抽取 DSE 人物角色、神獸寵物與武器裝備卡牌！</div>
         </div>
         <button class="btn-enter">進入召喚</button>
     </div>
 
-    <!-- 關卡二卡牌：修改為跳轉 battle.html -->
+    <!-- 傳送門二：收藏冊與自建牌組 (deck_dex.html) -->
+    <div class="portal-card" onclick="navigateTo('deck_dex.html')">
+        <div class="card-illustration">📖</div>
+        <div>
+            <div class="portal-name">收藏冊與牌組</div>
+            <div class="portal-desc">查看已解鎖的英靈圖鑑，配置並儲存你的 5 張出戰黃金牌組！</div>
+        </div>
+        <button class="btn-enter">管理牌組</button>
+    </div>
+
+    <!-- 傳送門三：概率線上決鬥場 (battle.html) -->
     <div class="portal-card" onclick="navigateTo('battle.html')">
         <div class="card-illustration">⚔️</div>
         <div>
-            <div class="portal-name">概率決鬥場</div>
-            <div class="portal-desc">建立你的專屬卡組，運用期望值雷擊、巴斯卡盾防，與混沌獸一決雌雄！</div>
+            <div class="portal-name">概率線上對戰</div>
+            <div class="portal-desc">派遣你的備戰卡牌，透過期望值雷擊、條件概率神罰，與線上同好進行智力決鬥！</div>
         </div>
         <button class="btn-enter">進入決鬥</button>
     </div>
 </div>
-
-
 
 <script>
     // ==========================================
@@ -243,22 +231,19 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 從 LocalStorage 讀取當前學生資料
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
 
-    // 如果未登入，強制踢回登入頁
     if (!studentId || !studentName) {
-        alert('⚠️ 偵測到魔力失效！請先在學院傳送門登入。');
+        alert('請先在學院傳送門登入！');
         window.location.href = 'index.html';
     }
 
-    // 初始化大廳數據
     async function initLobby() {
         document.getElementById('studentName').innerText = `${studentName} 煉金術士`;
 
         try {
-            // 從雲端實時抓取學生最新的寶石數量
+            // 從 Supabase 實時抓取學生最新的寶石數量
             const { data, error } = await supabaseClient
                 .from('student_progress')
                 .select('gems')
@@ -287,5 +272,3 @@
 </script>
 </body>
 </html>
-
-
