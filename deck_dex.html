@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+deck_dex_html_v3 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -28,7 +28,6 @@
             box-sizing: border-box;
         }
 
-        /* 頂部導航 */
         .header-bar {
             display: flex;
             justify-content: space-between;
@@ -37,7 +36,6 @@
             margin-bottom: 20px;
         }
 
-        /* 標籤頁切換 */
         .tabs {
             display: flex;
             gap: 15px;
@@ -63,7 +61,6 @@
             box-shadow: 0 0 15px rgba(224, 192, 104, 0.4);
         }
 
-        /* 圖鑑網格 */
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -71,7 +68,6 @@
             margin-bottom: 30px;
         }
 
-        /* 迷你卡牌（收藏冊風格） */
         .album-card {
             background: rgba(18, 9, 34, 0.85);
             border: 2px solid #5d4297;
@@ -81,7 +77,7 @@
             cursor: pointer;
             transition: transform 0.2s, border-color 0.2s;
             position: relative;
-            filter: grayscale(100%); /* 預設鎖定 */
+            filter: grayscale(100%);
             opacity: 0.5;
         }
 
@@ -106,7 +102,6 @@
             margin: 10px 0;
         }
 
-        /* 顏色分類風格 */
         .album-card.card-character { border-color: #ffd700; }
         .album-card.card-pet { border-color: #00bfff; }
         .album-card.card-weapon { border-color: #ff3e3e; }
@@ -181,7 +176,7 @@
 <div class="container">
     <div class="header-bar">
         <span style="font-weight:bold; color:#ffd700; font-size:18px;">📖 城堡收藏冊與自建牌組</span>
-        <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
+        <span>💎 擁有寶石：<span id="gemCount">0</span></span>
     </div>
 
     <!-- 牌組構築面板 -->
@@ -205,23 +200,26 @@
         <button class="tab-btn" onclick="filterType('武器卡')">武器裝備</button>
     </div>
 
-    <!-- 圖鑑網格 -->
     <div class="grid-layout" id="dexGrid"></div>
 
     <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
 </div>
 
-<script {type="text/javascript"}>
-    // ==========================================
-    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
-    // ==========================================
+<script>
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
+    let supabaseClient = null;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     const studentId = localStorage.getItem('supabase_student_id');
+    const studentName = localStorage.getItem('supabase_student_name');
     let unlockedCards = [];
     let selectedDeck = [];
+    let gems = 0;
 
     const fullCardDatabase = [
         { name: '雷鳴精算師 · 高斯', type: '人物角色', emoji: '🧙‍♂️', styleClass: 'card-character' },
@@ -240,15 +238,24 @@
             return;
         }
 
-        // 讀取進度
-        const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
-        if (data) {
-            document.getElementById('gemCount').innerText = data.gems;
-            unlockedCards = data.unlocked_cards || [];
-            // 載入當前牌組
-            selectedDeck = data.current_deck || [];
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            let user = users[studentName];
+            if (user) {
+                gems = user.gems;
+                unlockedCards = user.unlocked_cards || [];
+                selectedDeck = user.current_deck || [];
+            }
+        } else {
+            const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
+            if (data) {
+                gems = data.gems;
+                unlockedCards = data.unlocked_cards || [];
+                selectedDeck = data.current_deck || [];
+            }
         }
 
+        document.getElementById('gemCount').innerText = gems;
         renderDex('all');
         updateDeckUI();
     }
@@ -267,4 +274,90 @@
             cardEl.className = `album-card ${card.styleClass} ${isUnlocked ? 'unlocked' : ''} ${isSelected ? 'selected-for-deck' : ''}`;
             cardEl.innerHTML = `
                 <div style="font-size:11px; font-weight:bold;">${card.type}</div>
-                <div class=
+                <div class="album-card-emoji">${card.emoji}</div>
+                <div style="font-size:13px; font-weight:bold;">${card.name}</div>
+                <div style="font-size:11px; color:#aaa; margin-top:5px;">${isUnlocked ? '🔓 已擁有' : '🔒 鎖定中'}</div>
+            `;
+
+            if (isUnlocked) {
+                cardEl.onclick = () => toggleCardInDeck(card.name);
+            }
+
+            grid.appendChild(cardEl);
+        });
+    }
+
+    function toggleCardInDeck(cardName) {
+        const index = selectedDeck.indexOf(cardName);
+        if (index > -1) {
+            selectedDeck.splice(index, 1);
+        } else {
+            if (selectedDeck.length >= 5) {
+                alert('出戰牌組上限為 5 張卡牌！');
+                return;
+            }
+            selectedDeck.push(cardName);
+        }
+
+        updateDeckUI();
+        renderDex('all');
+    }
+
+    function updateDeckUI() {
+        for (let i = 0; i < 5; i++) {
+            const slot = document.getElementById(`slot${i}`);
+            if (i < selectedDeck.length) {
+                const card = fullCardDatabase.find(c => c.name === selectedDeck[i]);
+                slot.innerText = `${card.emoji} ${card.name}`;
+                slot.className = 'slot filled';
+            } else {
+                slot.innerText = `空位 ${i+1}`;
+                slot.className = 'slot';
+            }
+        }
+    }
+
+    async function saveDeckToCloud() {
+        if (selectedDeck.length < 3) {
+            alert('為了保證戰鬥流暢，請至少挑選 3 張卡牌！');
+            return;
+        }
+
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            if (users[studentName]) {
+                users[studentName].current_deck = selectedDeck;
+                localStorage.setItem('local_users', JSON.stringify(users));
+                alert('🎉 [本地測試模式] 出戰牌組儲存成功！');
+            }
+        } else {
+            try {
+                const { error } = await supabaseClient
+                    .from('student_progress')
+                    .update({ current_deck: selectedDeck })
+                    .eq('student_id', studentId);
+
+                if (error) throw error;
+                alert('🎉 出戰牌組儲存成功！已實時同步至雲端戰卡系統！');
+            } catch (e) {
+                alert(`❌ 儲存失敗: ${e.message}`);
+            }
+        }
+    }
+
+    function filterType(type) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderDex(type);
+    }
+
+    initDex();
+</script>
+</body>
+</html>"""
+
+with open('deck_dex.html', 'w', encoding='utf-8') as f:
+    f.write(deck_dex_html_v3)
+
+print("deck_dex.html updated with sync + fallback.")
+
