@@ -1,40 +1,75 @@
-<!DOCTYPE html>
+# Let's upgrade our files to include stunning CSS 3D/2.5D parallax, card pop-out depth, 
+# tilted battlegrounds, and clear placeholders for custom image assets.
+# We will generate: lobby.html, gacha.html, deck_dex.html, battle.html
+
+lobby_v2 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 夢幻星導城堡大廳</title>
-    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 夢幻城堡背景：星空、極光與深邃魔法藍紫漸層 */
-        body {
-            background: radial-gradient(circle at center, #1b153a 0%, #0a0618 100%);
-            color: #d3c7f3;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
-            background-size: 550px 550px, 350px 350px;
-            background-position: 0 0, 40px 60px;
+        :root {
+            --castle-bg: url('https://images.unsplash.com/photo-1519074069444-1ba4e5663a43?q=80&w=1600&auto=format&fit=crop'); /* 夢幻古堡星空背景 */
         }
 
-        /* 城堡頂部頂欄 */
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #06020f;
+            color: #d3c7f3;
+        }
+
+        /* 2.5D 鼠標傾斜星空與城堡視差層 */
+        .parallax-wrapper {
+            position: absolute;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            background: var(--castle-bg) center/cover no-repeat;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            z-index: 1;
+        }
+
+        /* 城堡雲霧與魔法陣特效層 */
+        .magic-overlay {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(27, 21, 58, 0.4) 0%, rgba(10, 6, 24, 0.85) 90%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 漂浮極光粒子 */
+        .aurora-particles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 204, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(124, 77, 255, 0.15) 0%, transparent 50%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* 主導航欄 */
         .castle-navbar {
+            position: relative;
             width: 100%;
             max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-sizing: border-box;
-            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 2px solid rgba(224, 175, 55, 0.3);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            background: rgba(10, 6, 24, 0.6);
+            border-radius: 0 0 16px 16px;
         }
 
         .student-info {
@@ -42,143 +77,170 @@
             align-items: center;
             gap: 12px;
             background: rgba(255, 255, 255, 0.05);
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 30px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(224, 175, 55, 0.4);
+            box-shadow: 0 0 15px rgba(224, 175, 55, 0.2);
+            font-weight: bold;
         }
 
         .gem-icon {
             color: #ffd700;
-            font-weight: bold;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
         }
 
-        /* 城堡主體標題：夢幻哥德風 */
         .castle-main {
+            position: relative;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px;
             z-index: 10;
         }
 
         h1.castle-title {
-            font-size: 38px;
+            font-size: 42px;
             color: #f6e6be;
             margin: 0;
-            text-shadow: 0 0 15px rgba(246, 230, 190, 0.5), 0 0 30px rgba(109, 58, 238, 0.6);
+            text-shadow: 0 0 15px rgba(246, 230, 190, 0.6), 0 0 30px rgba(124, 77, 255, 0.8);
             font-family: 'Georgia', serif;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
         p.castle-subtitle {
-            font-size: 14px;
-            color: #9d8eff;
+            font-size: 15px;
+            color: #bfaaff;
             margin-top: 8px;
-            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(157, 142, 255, 0.5);
         }
 
-        /* 關卡選擇區：漂浮卡牌 */
+        /* 3D 浮空傳送卡牌區域 */
         .portal-zone {
+            position: relative;
             display: flex;
-            gap: 30px;
-            margin-top: 40px;
+            gap: 40px;
+            margin-top: 50px;
             justify-content: center;
             flex-wrap: wrap;
             padding: 20px;
+            z-index: 10;
+            perspective: 1200px;
         }
 
-        /* 夢幻城堡黃金大卡牌 */
+        /* 2.5D 浮空立體卡牌 */
         .portal-card {
-            width: 250px;
-            height: 360px;
+            width: 260px;
+            height: 380px;
             background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
-            border: 3px solid #e0c068; /* 玫瑰金雕花框 */
+            border: 3px solid #e0c068;
             border-radius: 20px;
-            position: relative;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(224, 192, 104, 0.1);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 20px;
+            padding: 25px;
             box-sizing: border-box;
+            transform-style: preserve-3d;
+            transform: rotateX(10deg);
         }
 
-        /* 懸停時：卡牌浮起並散發夢幻霓虹光芒 */
         .portal-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(157, 142, 255, 0.5);
-            border-color: #fff;
+            transform: translateY(-15px) rotateX(0deg) scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 255, 204, 0.5);
+            border-color: #00ffcc;
         }
 
-        /* 夢幻城堡插畫區域 */
+        /* 3D 浮空插畫 */
         .card-illustration {
             width: 100%;
-            height: 140px;
+            height: 150px;
             border-radius: 12px;
             border: 2px solid #856a37;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 60px;
+            font-size: 65px;
             background: radial-gradient(circle, #2d1854 0%, #0d061c 100%);
+            transform: translateZ(25px); /* 3D 突起效果 */
+            transition: transform 0.4s;
+            position: relative;
+        }
+
+        .portal-card:hover .card-illustration {
+            transform: translateZ(40px) scale(1.03);
+            border-color: #00ffcc;
         }
 
         .portal-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-            margin-top: 10px;
-            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+            margin-top: 15px;
+            transform: translateZ(15px);
         }
 
         .portal-desc {
-            font-size: 11px;
+            font-size: 12px;
             color: #a49fc4;
             text-align: center;
-            line-height: 1.4;
-            margin-top: 5px;
+            line-height: 1.5;
+            margin-top: 8px;
+            transform: translateZ(10px);
         }
 
         .btn-enter {
             background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
             color: #120524;
             border: none;
-            padding: 8px 24px;
+            padding: 10px 28px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
-            margin-top: 10px;
+            transform: translateZ(20px);
+            box-shadow: 0 0 15px rgba(224, 192, 104, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn-enter:hover {
+            background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
+            box-shadow: 0 0 20px #00ffcc;
+            color: #120524;
         }
 
         .btn-logout {
             background: transparent;
-            border: 1px solid #ff4d4d;
+            border: 2px solid #ff4d4d;
             color: #ff4d4d;
-            padding: 6px 14px;
+            padding: 8px 18px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s;
         }
 
         .btn-logout:hover {
-            background: rgba(255, 77, 77, 0.1);
+            background: rgba(255, 77, 77, 0.15);
+            box-shadow: 0 0 10px #ff4d4d;
         }
     </style>
 </head>
 <body>
 
+<!-- 2.5D 視差背景層 -->
+<div class="parallax-wrapper" id="parallaxBg"></div>
+<div class="magic-overlay"></div>
+<div class="aurora-particles"></div>
+
 <div class="castle-navbar">
-    <div style="font-weight: bold; color: #ffd700; font-size: 18px; letter-spacing: 1px;">🏰 概率星導院</div>
+    <div style="font-weight: bold; color: #ffd700; font-size: 20px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,215,0,0.4);">🏰 概率星導院</div>
     
     <div style="display: flex; gap: 20px; align-items: center;">
         <div class="student-info">
-            <span id="studentName">煉金術士 載入中...</span>
+            <span id="studentName">學員 載入中...</span>
             <span class="gem-icon">💎 <span id="studentGems">0</span></span>
         </div>
         <button class="btn-logout" onclick="handleLogout()">離開城堡</button>
@@ -190,43 +252,40 @@
     <p class="castle-subtitle">—— 選擇你想解鎖的概率魔法試煉門 ——</p>
 </div>
 
-<!-- 傳送門卡牌區 -->
+<!-- 3D 浮空卡牌 -->
 <div class="portal-zone">
-    <!-- 傳送門一：星導召喚神殿 (gacha.html) -->
+    <!-- 1. 召喚神殿 -->
     <div class="portal-card" onclick="navigateTo('gacha.html')">
         <div class="card-illustration">🔮</div>
         <div>
             <div class="portal-name">星導召喚神殿</div>
-            <div class="portal-desc">解鎖「Plan B 爆率加成」，拉動召喚石碑，抽取 DSE 人物角色、神獸寵物與武器裝備卡牌！</div>
+            <div class="portal-desc">解鎖「Plan B 爆率加成」，拉動召喚石碑，抽取豪華人物、神寵與加成裝備卡牌！</div>
         </div>
         <button class="btn-enter">進入召喚</button>
     </div>
 
-    <!-- 傳送門二：收藏冊與自建牌組 (deck_dex.html) -->
+    <!-- 2. 收藏冊 -->
     <div class="portal-card" onclick="navigateTo('deck_dex.html')">
         <div class="card-illustration">📖</div>
         <div>
             <div class="portal-name">收藏冊與牌組</div>
-            <div class="portal-desc">查看已解鎖的英靈圖鑑，配置並儲存你的 5 張出戰黃金牌組！</div>
+            <div class="portal-desc">查看已解鎖的英靈圖鑑背包，配置並儲存你的 5 張出戰黃金牌組！</div>
         </div>
         <button class="btn-enter">管理牌組</button>
     </div>
 
-    <!-- 傳送門三：概率線上決鬥場 (battle.html) -->
+    <!-- 3. 線上對戰 -->
     <div class="portal-card" onclick="navigateTo('battle.html')">
         <div class="card-illustration">⚔️</div>
         <div>
             <div class="portal-name">概率線上對戰</div>
-            <div class="portal-desc">派遣你的備戰卡牌，透過期望值雷擊、條件概率神罰，與線上同好進行智力決鬥！</div>
+            <div class="portal-desc">派遣你的出戰卡牌，透過期望值雷擊、條件概率神罰，與線上玩家實時決鬥！</div>
         </div>
         <button class="btn-enter">進入決鬥</button>
     </div>
 </div>
 
 <script>
-    // ==========================================
-    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
-    // ==========================================
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -239,11 +298,18 @@
         window.location.href = 'index.html';
     }
 
+    // 2.5D 鼠標視差跟隨效果
+    const parallaxBg = document.getElementById('parallaxBg');
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.clientX) / 45;
+        const y = (window.innerHeight / 2 - e.clientY) / 45;
+        parallaxBg.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+    });
+
     async function initLobby() {
         document.getElementById('studentName').innerText = `${studentName} 煉金術士`;
 
         try {
-            // 從 Supabase 實時抓取學生最新的寶石數量
             const { data, error } = await supabaseClient
                 .from('student_progress')
                 .select('gems')
@@ -271,4 +337,9 @@
     initLobby();
 </script>
 </body>
-</html>
+</html>"""
+
+with open('lobby.html', 'w', encoding='utf-8') as f:
+    f.write(lobby_v2)
+print("lobby.html v2 saved.")
+
