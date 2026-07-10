@@ -1,23 +1,36 @@
-battle_html_content = """<!DOCTYPE html>
+battle_v2 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 線上對戰殿堂</title>
-    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --stadium-bg: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=1600&auto=format&fit=crop'); /* 魔法星光背景 */
+        }
+
         body {
-            background: radial-gradient(circle at center, #0f153a 0%, #030514 100%);
+            background: #04020a;
             color: #d1dbff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; box-sizing: border-box;
-            background-image: 
-                radial-gradient(rgba(0, 255, 204, 0.08) 1px, transparent 0),
-                radial-gradient(rgba(0, 255, 204, 0.05) 2px, transparent 0);
-            background-size: 30px 30px, 60px 60px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 對戰背景視差層 */
+        .battle-stadium-bg {
+            position: absolute;
+            top: -5%; left: -5%;
+            width: 110%; height: 110%;
+            background: var(--stadium-bg) center/cover no-repeat;
+            opacity: 0.15;
+            filter: blur(5px);
+            z-index: 1;
+            pointer-events: none;
         }
 
         .battle-arena-layout {
@@ -28,9 +41,10 @@ battle_html_content = """<!DOCTYPE html>
             justify-content: center;
             flex-wrap: wrap;
             margin-top: 10px;
+            z-index: 10;
         }
 
-        /* 對戰台主體 */
+        /* 對戰台主體：傾斜 3D 視角設計 */
         .combat-table {
             flex: 1.4;
             min-width: 350px;
@@ -38,47 +52,43 @@ battle_html_content = """<!DOCTYPE html>
             border: 3px solid #00ffcc;
             border-radius: 20px;
             padding: 15px;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.15);
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
             box-sizing: border-box;
+            backdrop-filter: blur(5px);
         }
 
-        /* 備用控制區 */
-        .combat-sidebar {
-            flex: 0.6;
-            min-width: 260px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /* 還原圖 2 的對戰面板 */
+        /* 3D 表格傾斜 */
         .duel-board-ptcg {
             display: flex;
             flex-direction: column;
             gap: 15px;
             border: 2px solid #233470;
             border-radius: 16px;
-            background: rgba(0,0,0,0.4);
-            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
             position: relative;
+            perspective: 1000px; /* 立體桌面透視 */
         }
 
-        /* 敵方與我方區域 */
+        /* 3D 斜切對壘 Segments */
         .battle-zone-segment {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            min-height: 140px;
-            background: rgba(255,255,255,0.02);
+            min-height: 150px;
+            background: linear-gradient(170deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.04) 100%);
             border-radius: 12px;
             padding: 10px;
+            transform: rotateX(15deg); /* Tilted Tabletop stadium effect like PTCGP! */
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        /* 主戰位 */
+        /* 浮空 3D 主戰牌位 */
         .active-slot-ptcg {
             width: 110px;
-            height: 140px;
-            border: 2px solid #e0c068;
+            height: 150px;
+            border: 2.5px solid #e0c068;
             border-radius: 10px;
             background: linear-gradient(135deg, #1b0e35 0%, #050212 100%);
             display: flex;
@@ -89,46 +99,61 @@ battle_html_content = """<!DOCTYPE html>
             padding: 8px;
             box-sizing: border-box;
             text-align: center;
-            box-shadow: 0 0 10px rgba(224, 192, 104, 0.3);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.7);
+            transform: translateZ(30px); /* Lift cards in 3D space */
+            transform-style: preserve-3d;
+            transition: all 0.3s;
         }
 
-        /* 備戰位 (Bench Slots) */
+        /* 備戰席 (Bench Slots) */
         .bench-zone-ptcg {
             display: flex;
             gap: 10px;
             justify-content: center;
-            background: rgba(0,0,0,0.5);
-            padding: 8px;
-            border-radius: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 10px;
             border: 1px dashed #233470;
+            margin-top: 10px;
+            transform: rotateX(10deg);
+            transform-style: preserve-3d;
         }
 
         .bench-slot {
-            width: 60px;
-            height: 80px;
+            width: 65px;
+            height: 85px;
             border: 1.5px dashed rgba(255,255,255,0.3);
             border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 9px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.4);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            color: #aaa;
+            transform: translateZ(10px);
         }
 
         .bench-slot.filled {
             border-style: solid;
             border-color: #00bfff;
             background: #0f153a;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 5px 10px rgba(0, 191, 255, 0.3);
         }
 
-        .bench-slot:hover { transform: translateY(-5px); }
+        .bench-slot:hover {
+            transform: translateZ(20px) scale(1.08);
+            border-color: #00ffcc;
+        }
 
-        /* HP 狀態顯示 */
+        /* HP 能量條 */
         .hp-segment {
             width: 100%;
             text-align: center;
+            transform: translateZ(10px);
         }
 
         .hp-bar-tcg {
@@ -147,14 +172,14 @@ battle_html_content = """<!DOCTYPE html>
             transition: width 0.3s;
         }
 
-        /* 回合問答面板 */
+        /* 回合問答控制面板 */
         .quiz-panel-ptcg {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.65);
             border: 2px solid #00ffcc;
             border-radius: 12px;
             padding: 15px;
             margin-top: 15px;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
         }
 
         .quiz-title {
@@ -197,6 +222,15 @@ battle_html_content = """<!DOCTYPE html>
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+        }
+
+        .combat-sidebar {
+            flex: 0.6;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .btn-back {
@@ -214,13 +248,14 @@ battle_html_content = """<!DOCTYPE html>
 </head>
 <body>
 
-<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:8px; margin-bottom:15px;">
+<div class="battle-stadium-bg" id="parallaxStadium"></div>
+
+<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:8px; margin-bottom:15px; z-index:10;">
     <span style="font-weight:bold; color:#00ffcc; font-size:18px;">⚔️ 概率線上對戰殿堂</span>
     <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
 </div>
 
 <div class="battle-arena-layout">
-    <!-- 左側：卡牌戰場 -->
     <div class="combat-table">
         <div class="duel-board-ptcg">
             <!-- 敵方半場 -->
@@ -228,7 +263,7 @@ battle_html_content = """<!DOCTYPE html>
             <div class="battle-zone-segment">
                 <div class="active-slot-ptcg" id="enemyActive">
                     <div style="font-weight:bold; color:#ff7a7a;">混沌獸 EX</div>
-                    <div style="font-size:24px;">👿</div>
+                    <div style="font-size:40px; transform: translateZ(15px);">👿</div>
                     <div class="hp-segment">
                         HP: <span id="enemyActiveHP">300</span>/300
                         <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="enemyActiveHPFill"></div></div>
@@ -244,7 +279,7 @@ battle_html_content = """<!DOCTYPE html>
                 <!-- 我方主戰位 (Active Slot) -->
                 <div class="active-slot-ptcg" id="playerActive">
                     <div style="font-weight:bold; color:#00ffff;" id="playerActiveName">主戰位</div>
-                    <div style="font-size:36px;" id="playerActiveEmoji">❔</div>
+                    <div style="font-size:40px; transform: translateZ(15px);" id="playerActiveEmoji">❔</div>
                     <div class="hp-segment" id="playerActiveHPBox" style="display:none;">
                         HP: <span id="playerActiveHP">120</span>/120
                         <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="playerActiveHPFill"></div></div>
@@ -298,9 +333,6 @@ battle_html_content = """<!DOCTYPE html>
 </div>
 
 <script>
-    // ==========================================
-    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
-    // ==========================================
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -309,8 +341,8 @@ battle_html_content = """<!DOCTYPE html>
     let gems = 1000;
     let unlockedCards = [];
     let currentDeck = [];
-    let currentActiveIndex = -1; // 當前出戰英靈
-    let currentMode = 'AI'; // AI 或 ONLINE
+    let currentActiveIndex = -1; 
+    let currentMode = 'AI'; 
 
     let enemyHP = 300;
     let currentQuizAns = 0;
@@ -326,13 +358,20 @@ battle_html_content = """<!DOCTYPE html>
         '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡' }
     };
 
-    // 豐富多樣的 DSE 戰鬥隨機題目生成
+    // 視差跟隨效果
+    const parallaxStadium = document.getElementById('parallaxStadium');
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.clientX) / 45;
+        const y = (window.innerHeight / 2 - e.clientY) / 45;
+        parallaxStadium.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+    });
+
     const duelQuizPool = [
         {
             type: 'Expected_Value',
             gen: () => {
-                let dmg = Math.floor(Math.random() * 2) * 50 + 150; // 150, 200
-                let probPercent = Math.floor(Math.random() * 3) * 10 + 50; // 50%, 60%, 70%
+                let dmg = Math.floor(Math.random() * 2) * 50 + 150;
+                let probPercent = Math.floor(Math.random() * 3) * 10 + 50;
                 let ans = dmg * (probPercent / 100);
                 return {
                     text: `敵方釋放迷霧屏障。我方英靈發動期望值領域：有 ${probPercent}% 機率造成 ${dmg} 點傷害，其餘機率 0 傷害，請精算【期望傷害值】。`,
@@ -343,8 +382,7 @@ battle_html_content = """<!DOCTYPE html>
         {
             type: 'Permutations_Combinations',
             gen: () => {
-                let items = Math.floor(Math.random() * 3) + 5; // 5, 6, 7
-                // C(items, 3)
+                let items = Math.floor(Math.random() * 3) + 5;
                 let ans = factorial(items) / (factorial(3) * factorial(items - 3));
                 return {
                     text: `城堡大陣需要部署防禦药水。從 ${items} 種不同的魔法元素中選出 3 種不同的配方，一共有多少種不同的【組合 C】？`,
@@ -355,7 +393,7 @@ battle_html_content = """<!DOCTYPE html>
         {
             type: 'Conditional_Probability',
             gen: () => {
-                let p = Math.floor(Math.random() * 2) * 10 + 70; // 70%, 80%
+                let p = Math.floor(Math.random() * 2) * 10 + 70;
                 let dec = p / 100;
                 let ans = parseFloat((dec * dec * 100).toFixed(1));
                 return {
@@ -373,7 +411,6 @@ battle_html_content = """<!DOCTYPE html>
             return;
         }
 
-        // 獲取寶石與出戰牌組
         const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
         if (data) {
             gems = data.gems;
@@ -444,11 +481,10 @@ battle_html_content = """<!DOCTYPE html>
         let isCorrect = Math.abs(studentAns - currentQuizAns) <= 0.2;
 
         if (isCorrect) {
-            // 答對：對敵方造成傷害
             const cardName = currentDeck[currentActiveIndex];
             const card = fullCardStats[cardName];
             
-            let dmg = 100; // 人物
+            let dmg = 100;
             if (card.type === '寵物') { dmg = 60; }
             else if (card.type === '武器卡') { dmg = 80; }
 
@@ -471,7 +507,6 @@ battle_html_content = """<!DOCTYPE html>
             fb.style.color = '#ff4d4d';
         }
 
-        // 答完後上傳 DSE 成績
         await uploadDSERecord(isCorrect);
         setTimeout(nextQuizRound, 2500);
     }
@@ -509,7 +544,6 @@ battle_html_content = """<!DOCTYPE html>
             status.innerText = '目前模式：練習 AI 對戰';
         } else {
             status.innerText = '目前模式：線上同好對決 (實時 Room 連線中...)';
-            // 線上模式下，Supabase Channel 開始廣播 Room 資料
             alert('📡 Supabase Room 已建立！歡迎將網址分享給其他同學進行即時智力比拼！');
         }
     }
@@ -522,10 +556,9 @@ battle_html_content = """<!DOCTYPE html>
     initBattle();
 </script>
 </body>
-</html>
-"""
+</html>"""
 
 with open('battle.html', 'w', encoding='utf-8') as f:
-    f.write(battle_html_content)
-print("battle.html saved successfully.")
+    f.write(battle_v2)
+print("battle.html v2 saved.")
 
