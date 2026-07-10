@@ -1,17 +1,14 @@
-# Let's upgrade our files to include stunning CSS 3D/2.5D parallax, card pop-out depth, 
-# tilted battlegrounds, and clear placeholders for custom image assets.
-# We will generate: lobby.html, gacha.html, deck_dex.html, battle.html
-
-lobby_v2 = """<!DOCTYPE html>
+lobby_html_v3 = """<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 夢幻星導城堡大廳</title>
+    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --castle-bg: url('https://images.unsplash.com/photo-1519074069444-1ba4e5663a43?q=80&w=1600&auto=format&fit=crop'); /* 夢幻古堡星空背景 */
+            --castle-bg: url('https://images.unsplash.com/photo-1519074069444-1ba4e5663a43?q=80&w=1600&auto=format&fit=crop');
         }
 
         body, html {
@@ -23,7 +20,6 @@ lobby_v2 = """<!DOCTYPE html>
             color: #d3c7f3;
         }
 
-        /* 2.5D 鼠標傾斜星空與城堡視差層 */
         .parallax-wrapper {
             position: absolute;
             top: -10%; left: -10%;
@@ -34,7 +30,6 @@ lobby_v2 = """<!DOCTYPE html>
             z-index: 1;
         }
 
-        /* 城堡雲霧與魔法陣特效層 */
         .magic-overlay {
             position: absolute;
             width: 100%; height: 100%;
@@ -43,7 +38,6 @@ lobby_v2 = """<!DOCTYPE html>
             pointer-events: none;
         }
 
-        /* 漂浮極光粒子 */
         .aurora-particles {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -54,7 +48,6 @@ lobby_v2 = """<!DOCTYPE html>
             pointer-events: none;
         }
 
-        /* 主導航欄 */
         .castle-navbar {
             position: relative;
             width: 100%;
@@ -92,101 +85,98 @@ lobby_v2 = """<!DOCTYPE html>
         .castle-main {
             position: relative;
             text-align: center;
-            margin-top: 40px;
+            margin-top: 25px;
             z-index: 10;
         }
 
         h1.castle-title {
-            font-size: 42px;
+            font-size: 38px;
             color: #f6e6be;
             margin: 0;
             text-shadow: 0 0 15px rgba(246, 230, 190, 0.6), 0 0 30px rgba(124, 77, 255, 0.8);
             font-family: 'Georgia', serif;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
         }
 
         p.castle-subtitle {
-            font-size: 15px;
+            font-size: 14px;
             color: #bfaaff;
-            margin-top: 8px;
+            margin-top: 6px;
             text-shadow: 0 0 8px rgba(157, 142, 255, 0.5);
         }
 
-        /* 3D 浮空傳送卡牌區域 */
         .portal-zone {
             position: relative;
             display: flex;
-            gap: 40px;
-            margin-top: 50px;
+            gap: 30px;
+            margin-top: 30px;
             justify-content: center;
             flex-wrap: wrap;
-            padding: 20px;
+            padding: 10px;
             z-index: 10;
             perspective: 1200px;
         }
 
-        /* 2.5D 浮空立體卡牌 */
         .portal-card {
-            width: 260px;
-            height: 380px;
+            width: 240px;
+            height: 350px;
             background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
             border: 3px solid #e0c068;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(224, 192, 104, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 25px;
+            padding: 20px;
             box-sizing: border-box;
             transform-style: preserve-3d;
-            transform: rotateX(10deg);
+            transform: rotateX(8deg);
         }
 
         .portal-card:hover {
-            transform: translateY(-15px) rotateX(0deg) scale(1.05);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 255, 204, 0.5);
+            transform: translateY(-12px) rotateX(0deg) scale(1.04);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 255, 204, 0.5);
             border-color: #00ffcc;
         }
 
-        /* 3D 浮空插畫 */
         .card-illustration {
             width: 100%;
-            height: 150px;
+            height: 130px;
             border-radius: 12px;
             border: 2px solid #856a37;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 65px;
+            font-size: 55px;
             background: radial-gradient(circle, #2d1854 0%, #0d061c 100%);
-            transform: translateZ(25px); /* 3D 突起效果 */
+            transform: translateZ(25px);
             transition: transform 0.4s;
             position: relative;
         }
 
         .portal-card:hover .card-illustration {
-            transform: translateZ(40px) scale(1.03);
+            transform: translateZ(35px) scale(1.03);
             border-color: #00ffcc;
         }
 
         .portal-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #ffd700;
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-            margin-top: 15px;
+            margin-top: 10px;
             transform: translateZ(15px);
         }
 
         .portal-desc {
-            font-size: 12px;
+            font-size: 11px;
             color: #a49fc4;
             text-align: center;
-            line-height: 1.5;
-            margin-top: 8px;
+            line-height: 1.4;
+            margin-top: 6px;
             transform: translateZ(10px);
         }
 
@@ -194,10 +184,10 @@ lobby_v2 = """<!DOCTYPE html>
             background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
             color: #120524;
             border: none;
-            padding: 10px 28px;
+            padding: 8px 24px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transform: translateZ(20px);
             box-shadow: 0 0 15px rgba(224, 192, 104, 0.5);
@@ -207,7 +197,31 @@ lobby_v2 = """<!DOCTYPE html>
         .btn-enter:hover {
             background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
             box-shadow: 0 0 20px #00ffcc;
+        }
+
+        /* 每日星導泉 */
+        .fountain-container {
+            position: relative;
+            z-index: 10;
+            margin-top: 15px;
+        }
+
+        .btn-fountain {
+            background: linear-gradient(135deg, #7c4dff 0%, #00ffcc 100%);
             color: #120524;
+            border: 2px solid #fff;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-fountain:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.7);
+            transform: scale(1.05);
         }
 
         .btn-logout {
@@ -230,7 +244,6 @@ lobby_v2 = """<!DOCTYPE html>
 </head>
 <body>
 
-<!-- 2.5D 視差背景層 -->
 <div class="parallax-wrapper" id="parallaxBg"></div>
 <div class="magic-overlay"></div>
 <div class="aurora-particles"></div>
@@ -252,9 +265,7 @@ lobby_v2 = """<!DOCTYPE html>
     <p class="castle-subtitle">—— 選擇你想解鎖的概率魔法試煉門 ——</p>
 </div>
 
-<!-- 3D 浮空卡牌 -->
 <div class="portal-zone">
-    <!-- 1. 召喚神殿 -->
     <div class="portal-card" onclick="navigateTo('gacha.html')">
         <div class="card-illustration">🔮</div>
         <div>
@@ -264,7 +275,6 @@ lobby_v2 = """<!DOCTYPE html>
         <button class="btn-enter">進入召喚</button>
     </div>
 
-    <!-- 2. 收藏冊 -->
     <div class="portal-card" onclick="navigateTo('deck_dex.html')">
         <div class="card-illustration">📖</div>
         <div>
@@ -274,7 +284,6 @@ lobby_v2 = """<!DOCTYPE html>
         <button class="btn-enter">管理牌組</button>
     </div>
 
-    <!-- 3. 線上對戰 -->
     <div class="portal-card" onclick="navigateTo('battle.html')">
         <div class="card-illustration">⚔️</div>
         <div>
@@ -285,10 +294,20 @@ lobby_v2 = """<!DOCTYPE html>
     </div>
 </div>
 
+<!-- 每日星導泉（防止軟鎖） -->
+<div class="fountain-container">
+    <button class="btn-fountain" onclick="claimDailyGems()">⛲ 每日祈願泉（獲取 500 寶石）</button>
+</div>
+
 <script>
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
+    let supabaseClient = null;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
@@ -298,7 +317,7 @@ lobby_v2 = """<!DOCTYPE html>
         window.location.href = 'index.html';
     }
 
-    // 2.5D 鼠標視差跟隨效果
+    // 2.5D 視差背景
     const parallaxBg = document.getElementById('parallaxBg');
     window.addEventListener('mousemove', (e) => {
         const x = (window.innerWidth / 2 - e.clientX) / 45;
@@ -308,21 +327,57 @@ lobby_v2 = """<!DOCTYPE html>
 
     async function initLobby() {
         document.getElementById('studentName').innerText = `${studentName} 煉金術士`;
+        await refreshGems();
+    }
 
-        try {
-            const { data, error } = await supabaseClient
-                .from('student_progress')
-                .select('gems')
-                .eq('student_id', studentId)
-                .single();
-
-            if (error) throw error;
-            if (data) {
-                document.getElementById('studentGems').innerText = data.gems;
+    async function refreshGems() {
+        let gems = 0;
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            let user = users[studentName];
+            if (user) gems = user.gems;
+        } else {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('student_progress')
+                    .select('gems')
+                    .eq('student_id', studentId)
+                    .single();
+                if (data) gems = data.gems;
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error('抓取寶石數量失敗：', e);
         }
+        document.getElementById('studentGems').innerText = gems;
+        localStorage.setItem('cached_gems', gems); // 本地同步快取
+    }
+
+    // 每日領取寶石防軟鎖
+    async function claimDailyGems() {
+        let currentGems = parseInt(document.getElementById('studentGems').innerText);
+        let newGems = currentGems + 500;
+
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            if (users[studentName]) {
+                users[studentName].gems = newGems;
+                localStorage.setItem('local_users', JSON.stringify(users));
+            }
+        } else {
+            try {
+                await supabaseClient
+                    .from('student_progress')
+                    .update({ gems: newGems })
+                    .eq('student_id', studentId);
+            } catch (e) {
+                alert('雲端同步失敗，請稍後再試！');
+                return;
+            }
+        }
+
+        alert('⛲ 祈願成功！星導噴泉溢出魔力，您獲得了 500 💎 寶石！');
+        document.getElementById('studentGems').innerText = newGems;
+        localStorage.setItem('cached_gems', newGems);
     }
 
     function navigateTo(page) {
@@ -340,6 +395,7 @@ lobby_v2 = """<!DOCTYPE html>
 </html>"""
 
 with open('lobby.html', 'w', encoding='utf-8') as f:
-    f.write(lobby_v2)
-print("lobby.html v2 saved.")
+    f.write(lobby_html_v3)
+
+print("lobby.html written cleanly without python scrambled wrappers.")
 
