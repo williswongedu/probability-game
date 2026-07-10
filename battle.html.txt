@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數源對決 - 概率決鬥場</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at center, #110d2e 0%, #03020a 100%);
+            color: #d1dbff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; box-sizing: border-box;
+        }
+
+        .battle-grid {
+            display: flex; gap: 30px;
+            max-width: 1100px; width: 100%;
+            justify-content: center; flex-wrap: wrap;
+        }
+
+        /* 戰鬥盤面 */
+        .battle-arena {
+            flex: 1.3; min-width: 350px;
+            background: rgba(8, 6, 26, 0.95);
+            border: 3px double #e0c068;
+            border-radius: 20px; padding: 25px;
+            box-shadow: 0 0 25px rgba(224,192,104,0.1);
+        }
+
+        /* 敵方與我方對壘區域 */
+        .duel-board {
+            display: flex; justify-content: space-around; align-items: center;
+            height: 160px; border: 2px solid #233470; border-radius: 12px;
+            background: rgba(255,255,255,0.02); margin-bottom: 20px;
+            position: relative;
+        }
+
+        .fighter { text-align: center; }
+        .fighter-avatar { font-size: 60px; animation: idle 2s infinite ease-in-out; }
+        @keyframes idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* HP 條 */
+        .hp-bar {
+            width: 100px; height: 8px; background: #222;
+            border: 1px solid #ff4d4d; border-radius: 4px; overflow: hidden; margin-top: 5px;
+        }
+        .hp-bar-fill { width: 100%; height: 100%; background: #ff4d4d; transition: width 0.3s; }
+
+        /* 手牌區 (TCG 手牌) */
+        .hand-area {
+            display: flex; gap: 15px; justify-content: center; margin: 20px 0;
+        }
+
+        .combat-card {
+            width: 120px; height: 170px;
+            background: linear-gradient(135deg, #1b0e35 0%, #060214 100%);
+            border: 2px solid #8c6a3c; border-radius: 10px;
+            padding: 8px; box-sizing: border-box; cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            text-align: center;
+        }
+
+        .combat-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #ffd700;
+        }
+
+        .combat-card.selected {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        /* 答題面板 */
+        .puzzle-console {
+            background: rgba(0,0,0,0.5); border: 2px solid #5d4297;
+            border-radius: 10px; padding: 15px;
+        }
+
+        .btn-action {
+            padding: 12px 24px; background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
+            border: none; border-radius: 8px; color: #120524; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:10px; margin-bottom:20px;">
+    <span style="font-weight:bold; color:#ffd700;">⚔️ 概率決鬥場 (夢幻星星挑戰)</span>
+    <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
+</div>
+
+<div class="battle-grid">
+    <div class="battle-arena">
+        <!-- 對壘面板 -->
+        <div class="duel-board">
+            <div class="fighter">
+                <div class="fighter-avatar">🧙‍♂️</div>
+                <div style="font-size:12px; color:#00ffff;">精算師玩家</div>
+                <div class="hp-bar"><div class="hp-bar-fill" id="playerHP" style="background:#00ffcc;"></div></div>
+            </div>
+            <div style="font-size:24px; font-weight:bold; color:#ffb830;">VS</div>
+            <div class="fighter">
+                <div class="fighter-avatar" id="bossIcon">👿</div>
+                <div style="font-size:12px; color:#ff7a7a;" id="bossName">混沌獸 (HP: 300)</div>
+                <div class="hp-bar"><div class="hp-bar-fill" id="bossHP"></div></div>
+            </div>
+        </div>
+
+        <!-- 構築自建手牌區 -->
+        <div style="font-size:12px; color:#aaa; text-align:center;">【點擊選擇你要出戰的英靈發動必殺技】</div>
+        <div class="hand-area" id="hand">
+            <!-- 動態加載卡組 -->
+            <div class="combat-card" onclick="selectCard('Pascal', this)">
+                <div style="font-size:11px; font-weight:bold; color:#ffd700;">巴斯卡</div>
+                <div style="font-size:30px; margin:10px 0;">🛡️</div>
+                <div style="font-size:10px; color:#ccc;">必殺：三角護盾<br>(P&C)</div>
+            </div>
+            <div class="combat-card" onclick="selectCard('Gauss', this)">
+                <div style="font-size:11px; font-weight:bold; color:#ffd700;">高斯</div>
+                <div style="font-size:30px; margin:10px 0;">⚡</div>
+                <div style="font-size:10px; color:#ccc;">必殺：雷擊領域<br>(期望值)</div>
+            </div>
+            <div class="combat-card" onclick="selectCard('Bayes', this)">
+                <div style="font-size:11px; font-weight:bold; color:#ffd700;">貝葉斯</div>
+                <div style="font-size:30px; margin:10px 0;">🗡️</div>
+                <div style="font-size:10px; color:#ccc;">必殺：神罰暴擊<br>(條件概率)</div>
+            </div>
+        </div>
+
+        <!-- 答題控制台 -->
+        <div class="puzzle-console">
+            <div style="color:#00ffff; font-weight:bold; font-size:13px; margin-bottom:8px;">★ 必殺技連攜精算</div>
+            <div id="questText" style="font-size:14px; line-height:1.5; margin-bottom:15px;">請先選擇一張英靈手牌來啟動決鬥！</div>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="battleInput" style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #5d4297; border-radius:6px; color:#fff; text-align:center; font-size:16px;">
+                <button class="btn-action" onclick="castSkill()">釋放必殺技</button>
+            </div>
+            <div id="combatFeedback" style="margin-top:12px; font-weight:bold; text-align:center;"></div>
+        </div>
+    </div>
+    
+    <div style="flex:0.7; display:flex; flex-direction:column; gap:15px;">
+        <div style="background:rgba(0,0,0,0.4); border:2px solid #e0c068; border-radius:15px; padding:20px;">
+            <h3 style="color:#ffd700; margin-top:0;">城堡決鬥規則</h3>
+            <p style="font-size:13px; line-height:1.6; color:#ccc;">
+                1. <b>卡牌克制</b>：不同的英靈對應不同的 DSE 數學單元。答對才能成功施放攻擊！<br>
+                2. <b>擊敗獎勵</b>：消滅 Boss 將獲得 <b>150 寶石</b>，並實時上傳學生成績到 Supabase 數據庫。
+            </p>
+        </div>
+        <a href="lobby.html" class="btn-action" style="text-align:center; text-decoration:none;">🏰 返回城堡大廳</a>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
+    // ==========================================
+    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.coL'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const studentId = localStorage.getItem('supabase_student_id');
+    let gems = 1000;
+
+    let bossHP = 300, maxBossHP = 300;
+    let playerHP = 200, maxPlayerHP = 200;
+    let selectedCard = null;
+    let currentAns = 0;
+    let currentTopic = '';
+
+    // 初始化數據
+    async function initBattle() {
+        if (!studentId) {
+            alert('登入失效，回到傳送門！');
+            window.location.href = 'index.html';
+            return;
+        }
+        const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
+        if (data) {
+            gems = data.gems;
+            document.getElementById('gemCount').innerText = gems;
+        }
+    }
+
+    // 選擇手牌，生成隨機 DSE 數學題
+    function selectCard(hero, element) {
+        selectedCard = hero;
+        document.querySelectorAll('.combat-card').forEach(c => c.classList.remove('selected'));
+        element.classList.add('selected');
+
+        document.getElementById('combatFeedback').innerText = '';
+
+        if (hero === 'Pascal') {
+            currentTopic = 'Permutations_Combinations';
+            // 隨機生成 P&C 題目
+            const items = Math.floor(Math.random() * 3) + 5; // 5-7
+            const select = 3;
+            // 題目：從 items 中選 3 個的組合數 C(items, 3)
+            currentAns = factorial(items) / (factorial(select) * factorial(items - select));
+            document.getElementById('questText').innerText = `【巴斯卡之盾】發動中！城堡防線上需要部署元素藥水。從 ${items} 種不同的水晶中，任選 ${select} 種，一共有多少種不同的【組合 (Combinations)】？`;
+        } 
+        else if (hero === 'Gauss') {
+            currentTopic = 'Expected_Value';
+            // 隨機生成期望值題目
+            const dmg1 = Math.floor(Math.random() * 2) * 100 + 200; // 200 或 300
+            const prob1Percent = Math.floor(Math.random() * 2) * 20 + 60; // 60% 或 80%
+            const prob1 = prob1Percent / 100;
+            currentAns = dmg1 * prob1;
+            document.getElementById('questText').innerText = `【高斯雷擊領域】啟動！陣型有 ${prob1Percent}% 的機率造成 ${dmg1} 點高額雷擊傷害（其餘機率造成 0 傷害），請精算此陣型的【傷害期望值 (Expected Value)】為多少點？`;
+        } 
+        else if (hero === 'Bayes') {
+            currentTopic = 'Conditional_Probability';
+            // 隨機生成條件概率題目
+            const baseProbPercent = 20;
+            const wetProbPercent = 80;
+            const probDecimal = wetProbPercent / 100;
+            // 題目：已知潮濕狀態下（發生機率100%），連續兩次暴擊的機率
+            currentAns = parseFloat((probDecimal * probDecimal * 100).toFixed(1));
+            document.getElementById('questText').innerText = `【貝葉斯天雷神罰】發動！已知敵方處於「潮濕狀態」，單次天雷造成暴擊的機率提升至 ${wetProbPercent}%。在此狀態下，你【連續兩次】發動天雷皆造成暴擊的機率是多少%？(四捨五入至小數點後一位)`;
+        }
+    }
+
+    // 施放技能
+    async function castSkill() {
+        const studentAns = parseFloat(document.getElementById('battleInput').value);
+        const fb = document.getElementById('combatFeedback');
+
+        if (!selectedCard) {
+            fb.innerText = '⚠️ 請先選擇一張手牌！';
+            fb.style.color = '#ff4d4d';
+            return;
+        }
+
+        if (isNaN(studentAns)) {
+            fb.innerText = '⚠️ 請輸入你的精算答案！';
+            fb.style.color = '#ff4d4d';
+            return;
+        }
+
+        let isCorrect = Math.abs(studentAns - currentAns) <= 0.2;
+
+        if (isCorrect) {
+            bossHP -= 100;
+            fb.innerText = '⚡【完美精算！】必殺技完美連擊，對混沌獸造成 100 點痛擊！';
+            fb.style.color = '#00ffcc';
+            
+            if (bossHP <= 0) {
+                bossHP = 0;
+                fb.innerText = '🏆【大捷！】混沌獸已被封印！恭喜獲得 150 寶石！';
+                gems += 150;
+                document.getElementById('gemCount').innerText = gems;
+                await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+            }
+        } else {
+            playerHP -= 40;
+            fb.innerText = `❌【公式干擾！】計算失誤魔法反噬，防線遭受攻擊，玩家扣除 40 HP！（答案是 ${currentAns}）`;
+            fb.style.color = '#ff4d4d';
+            if (playerHP <= 0) {
+                playerHP = 0;
+                fb.innerText = '💀 戰線崩潰！請回到大廳整頓旗鼓，再次精算挑戰！';
+            }
+        }
+
+        updateBattleUI();
+        await updateDSERecordsCloud(isCorrect);
+        document.getElementById('battleInput').value = '';
+    }
+
+    function updateBattleUI() {
+        document.getElementById('bossHP').style.width = `${(bossHP / maxBossHP) * 100}%`;
+        document.getElementById('playerHP').style.width = `${(playerHP / maxPlayerHP) * 100}%`;
+        document.getElementById('bossName').innerText = `混沌獸 (HP: ${bossHP})`;
+    }
+
+    async function updateDSERecordsCloud(isCorrect) {
+        try {
+            const { data: record } = await supabaseClient.from('dse_records').select('*').eq('student_id', studentId).eq('topic', currentTopic).single();
+            if (record) {
+                await supabaseClient.from('dse_records').update({
+                    total_attempts: record.total_attempts + 1,
+                    correct_attempts: record.correct_attempts + (isCorrect ? 1 : 0)
+                }).eq('id', record.id);
+            } else {
+                await supabaseClient.from('dse_records').insert([{
+                    student_id: studentId,
+                    topic: currentTopic,
+                    total_attempts: 1,
+                    correct_attempts: isCorrect ? 1 : 0
+                }]);
+            }
+        } catch (e) {
+            console.error('上傳成績出錯：', e);
+        }
+    }
+
+    function factorial(n) {
+        if (n === 0 || n === 1) return 1;
+        return n * factorial(n - 1);
+    }
+
+    initBattle();
+</script>
+</body>
+</html>
+
+
