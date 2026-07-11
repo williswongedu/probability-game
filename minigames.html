@@ -333,7 +333,7 @@
 
 <script>
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
 
     let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
     let supabaseClient = null;
@@ -674,7 +674,7 @@
     }
 
     // ==========================================
-    // S4: 拋物線加農砲 (頂點式)
+    // S4: 拋物線加農砲 (頂點式 + 避障黑曜石城牆)
     // ==========================================
     let s4TargetX, s4TargetY;
     const canvasS4 = document.getElementById('canvasS4');
@@ -683,11 +683,15 @@
     const scaleS4 = 25;
     const oXS4 = 50, oYS4 = 300;
 
+    // 💡 避障黑曜石城牆位置與高度
+    const s4WallX = 4; // 城牆位於 x = 4 刻度
+    const s4WallHeight = 5; // 高度為 5 個單位
+
     let s4ProjX = 0, s4Trace = [], s4Anim = null;
 
     function initS4() {
-        s4TargetX = Math.floor(Math.random() * 5) + 6; 
-        s4TargetY = Math.floor(Math.random() * 6) + 2; 
+        s4TargetX = Math.floor(Math.random() * 5) + 6; // 目標在 6 至 10 之間
+        s4TargetY = Math.floor(Math.random() * 4) + 1; // 高度在 1 至 4 之間
         document.getElementById('feedbackS4').innerText = '';
         drawS4();
     }
@@ -708,6 +712,12 @@
         ctxS4.strokeStyle = '#5d4297'; ctxS4.lineWidth = 2;
         ctxS4.beginPath(); ctxS4.moveTo(oXS4, 0); ctxS4.lineTo(oXS4, canvasS4.height); ctxS4.stroke();
         ctxS4.beginPath(); ctxS4.moveTo(0, oYS4); ctxS4.lineTo(canvasS4.width, oYS4); ctxS4.stroke();
+
+        // 💡 繪製黑曜石城牆 (障礙物)
+        ctxS4.fillStyle = '#4c3c8c';
+        ctxS4.fillRect(oXS4 + s4WallX*scaleS4 - 8, oYS4 - s4WallHeight*scaleS4, 16, s4WallHeight*scaleS4);
+        ctxS4.fillStyle = '#ff3e3e'; ctxS4.font = '10px Arial';
+        ctxS4.fillText('城牆', oXS4 + s4WallX*scaleS4 - 10, oYS4 - s4WallHeight*scaleS4 - 5);
 
         // 砲台
         ctxS4.fillStyle = '#ff4e50';
@@ -757,9 +767,19 @@
             ctxS4.fillStyle = '#00ffcc'; ctxS4.beginPath();
             ctxS4.arc(oXS4 + s4ProjX*scaleS4, oYS4 - y*scaleS4, 5, 0, Math.PI*2); ctxS4.fill();
 
+            // 💡 障礙物碰撞檢測：如果砲彈撞擊到黑曜石城牆
+            if (Math.abs(s4ProjX - s4WallX) < 0.25 && y <= s4WallHeight) {
+                cancelAnimationFrame(s4Anim);
+                fb.innerText = '💥 轟！砲彈撞擊到黑曜石城牆！請重新精算頂點以拋越城牆。';
+                fb.style.color = '#ff4d4d';
+                return;
+            }
+
+            // 標靶碰撞檢測
             let dist = Math.sqrt(Math.pow(s4ProjX - s4TargetX, 2) + Math.pow(y - s4TargetY, 2));
-            if (dist <= 0.4) {
-                fb.innerText = '🎉【完美擊中！】彈道完美切中標靶！獲得 100 寶石！';
+            if (dist <= 0.45) {
+                cancelAnimationFrame(s4Anim);
+                fb.innerText = '🎉【完美擊中！】彈道成功跨越城牆並切中標靶！獲得 100 寶石！';
                 fb.style.color = '#00ffcc';
                 rewardGems(100);
                 setTimeout(initS4, 3000);
@@ -767,7 +787,8 @@
             }
 
             if (y < -2 || s4ProjX > 15) {
-                fb.innerText = '❌ 傷害落空！請微調頂點 $(h, k)$ 或拉伸 $a$ 重試。';
+                cancelAnimationFrame(s4Anim);
+                fb.innerText = '❌ 傷害落空！未能命中目標，請微調頂點 $(h, k)$ 重試。';
                 fb.style.color = '#ff4d4d';
                 return;
             }
