@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 星導召喚神殿</title>
+    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -432,7 +433,7 @@
             calc: (p, n) => 1 - Math.pow(1 - p/100, n)
         },
         {
-            template: "構築 5 張牌組，其中包含紅色與藍色水晶卡。若兩者【不可相鄰】，一共有多少種不同的排列方式？(可供選擇的水晶有 {n} 種)",
+            template: "庫存 5 張水晶牌，其中包含紅色與藍色。若兩者【不可相鄰】，一共有多少種不同的排列方式？(可供選擇的水晶有 {n} 種)",
             calc: (p, n) => {
                 return (n === 5) ? 72 : 120;
             }
@@ -558,19 +559,16 @@
             let users = JSON.parse(localStorage.getItem('local_users') || '{}');
             if (users[studentName]) {
                 users[studentName].gems = gems;
-                if (!users[studentName].unlocked_cards.includes(selectedHero.name)) {
-                    users[studentName].unlocked_cards.push(selectedHero.name);
-                }
+                // 💡 直接將重複卡牌推入Unlocked背包！
+                users[studentName].unlocked_cards.push(selectedHero.name);
                 localStorage.setItem('local_users', JSON.stringify(users));
             }
         } else {
             await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
             const { data } = await supabaseClient.from('student_progress').select('unlocked_cards').eq('student_id', studentId).single();
             let cards = data.unlocked_cards || [];
-            if (!cards.includes(selectedHero.name)) {
-                cards.push(selectedHero.name);
-                await supabaseClient.from('student_progress').update({ unlocked_cards: cards }).eq('student_id', studentId);
-            }
+            cards.push(selectedHero.name); // 💡 直接推入重複卡
+            await supabaseClient.from('student_progress').update({ unlocked_cards: cards }).eq('student_id', studentId);
         }
 
         prepareCard(selectedHero);
