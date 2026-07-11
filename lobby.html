@@ -85,12 +85,12 @@
         .castle-main {
             position: relative;
             text-align: center;
-            margin-top: 25px;
+            margin-top: 20px;
             z-index: 10;
         }
 
         h1.castle-title {
-            font-size: 38px;
+            font-size: 34px;
             color: #f6e6be;
             margin: 0;
             text-shadow: 0 0 15px rgba(246, 230, 190, 0.6), 0 0 30px rgba(124, 77, 255, 0.8);
@@ -99,7 +99,7 @@
         }
 
         p.castle-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: #bfaaff;
             margin-top: 6px;
             text-shadow: 0 0 8px rgba(157, 142, 255, 0.5);
@@ -108,8 +108,8 @@
         .portal-zone {
             position: relative;
             display: flex;
-            gap: 30px;
-            margin-top: 30px;
+            gap: 20px;
+            margin-top: 25px;
             justify-content: center;
             flex-wrap: wrap;
             padding: 10px;
@@ -118,11 +118,11 @@
         }
 
         .portal-card {
-            width: 240px;
-            height: 350px;
+            width: 210px;
+            height: 330px;
             background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
             border: 3px solid #e0c068;
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
@@ -130,27 +130,27 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
             transform-style: preserve-3d;
             transform: rotateX(8deg);
         }
 
         .portal-card:hover {
-            transform: translateY(-12px) rotateX(0deg) scale(1.04);
+            transform: translateY(-10px) rotateX(0deg) scale(1.04);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 255, 204, 0.5);
             border-color: #00ffcc;
         }
 
         .card-illustration {
             width: 100%;
-            height: 130px;
+            height: 120px;
             border-radius: 12px;
             border: 2px solid #856a37;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 55px;
+            font-size: 50px;
             background: radial-gradient(circle, #2d1854 0%, #0d061c 100%);
             transform: translateZ(25px);
             transition: transform 0.4s;
@@ -163,16 +163,17 @@
         }
 
         .portal-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #ffd700;
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
             margin-top: 10px;
             transform: translateZ(15px);
+            text-align: center;
         }
 
         .portal-desc {
-            font-size: 11px;
+            font-size: 10px;
             color: #a49fc4;
             text-align: center;
             line-height: 1.4;
@@ -187,7 +188,7 @@
             padding: 8px 24px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transform: translateZ(20px);
             box-shadow: 0 0 15px rgba(224, 192, 104, 0.5);
@@ -264,12 +265,13 @@
     <p class="castle-subtitle">—— 選擇你想解鎖的概率魔法試煉門 ——</p>
 </div>
 
+<!-- 四大傳送門 -->
 <div class="portal-zone">
     <div class="portal-card" onclick="navigateTo('gacha.html')">
         <div class="card-illustration">🔮</div>
         <div>
             <div class="portal-name">星導召喚神殿</div>
-            <div class="portal-desc">解鎖「Plan B 爆率加成」，拉動召喚石碑，抽取豪華人物、神寵與加成裝備卡牌！</div>
+            <div class="portal-desc">解鎖「Plan B 爆率加成」，拉動召喚石碑，抽取豪華卡牌！</div>
         </div>
         <button class="btn-enter">進入召喚</button>
     </div>
@@ -278,7 +280,7 @@
         <div class="card-illustration">📖</div>
         <div>
             <div class="portal-name">收藏冊與牌組</div>
-            <div class="portal-desc">查看已解鎖的英靈圖鑑背包，配置並儲存你的 5 張出戰黃金牌組！</div>
+            <div class="portal-desc">查看已解鎖的英靈圖鑑與重複卡牌數量，管理出戰牌組！</div>
         </div>
         <button class="btn-enter">管理牌組</button>
     </div>
@@ -287,9 +289,18 @@
         <div class="card-illustration">⚔️</div>
         <div>
             <div class="portal-name">概率線上對戰</div>
-            <div class="portal-desc">派遣你的出戰卡牌，透過期望值雷擊、條件概率神罰，與線上玩家實時決鬥！</div>
+            <div class="portal-desc">派遣你的出戰卡牌，透過期望值雷擊與條件神罰，實時對決！</div>
         </div>
         <button class="btn-enter">進入決鬥</button>
+    </div>
+
+    <div class="portal-card" onclick="navigateTo('minigames.html')">
+        <div class="card-illustration">🎯</div>
+        <div>
+            <div class="portal-name">數學小遊戲</div>
+            <div class="portal-desc">實彈模擬二次函數拋物線加農砲，賺取額外 💎 寶石！</div>
+        </div>
+        <button class="btn-enter">進入遊戲</button>
     </div>
 </div>
 
