@@ -1,4 +1,4 @@
-lobby_html_v3 = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -199,7 +199,6 @@ lobby_html_v3 = """<!DOCTYPE html>
             box-shadow: 0 0 20px #00ffcc;
         }
 
-        /* 每日星導泉 */
         .fountain-container {
             position: relative;
             z-index: 10;
@@ -294,14 +293,13 @@ lobby_html_v3 = """<!DOCTYPE html>
     </div>
 </div>
 
-<!-- 每日星導泉（防止軟鎖） -->
 <div class="fountain-container">
     <button class="btn-fountain" onclick="claimDailyGems()">⛲ 每日祈願泉（獲取 500 寶石）</button>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 
     let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
     let supabaseClient = null;
@@ -317,7 +315,6 @@ lobby_html_v3 = """<!DOCTYPE html>
         window.location.href = 'index.html';
     }
 
-    // 2.5D 視差背景
     const parallaxBg = document.getElementById('parallaxBg');
     window.addEventListener('mousemove', (e) => {
         const x = (window.innerWidth / 2 - e.clientX) / 45;
@@ -349,10 +346,9 @@ lobby_html_v3 = """<!DOCTYPE html>
             }
         }
         document.getElementById('studentGems').innerText = gems;
-        localStorage.setItem('cached_gems', gems); // 本地同步快取
+        localStorage.setItem('cached_gems', gems);
     }
 
-    // 每日領取寶石防軟鎖
     async function claimDailyGems() {
         let currentGems = parseInt(document.getElementById('studentGems').innerText);
         let newGems = currentGems + 500;
@@ -392,10 +388,4 @@ lobby_html_v3 = """<!DOCTYPE html>
     initLobby();
 </script>
 </body>
-</html>"""
-
-with open('lobby.html', 'w', encoding='utf-8') as f:
-    f.write(lobby_html_v3)
-
-print("lobby.html written cleanly without python scrambled wrappers.")
-
+</html>
