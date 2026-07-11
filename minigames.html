@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數源對決 - 數學小遊戲</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at center, #0f153a 0%, #030514 100%);
+            color: #d1dbff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; box-sizing: border-box;
+        }
+
+        h1 {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            box-sizing: border-box;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(224,192,104,0.3);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .game-selection-panel {
+            background: rgba(12, 6, 28, 0.9);
+            border: 3px solid #e0c068;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        /* 拋物線加農砲專用看板 */
+        .cannon-workspace {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .grid-canvas-box {
+            flex: 1.2;
+            min-width: 320px;
+            background: #000;
+            border: 2px solid #5d4297;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 350px;
+            background: #020208;
+        }
+
+        .control-inputs-box {
+            flex: 0.8;
+            min-width: 280px;
+            background: rgba(0,0,0,0.5);
+            border: 1.5px solid #233470;
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .formula-preview {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ffff;
+            text-align: center;
+            margin: 15px 0;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+            font-family: 'Georgia', serif;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .input-row label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .input-row input {
+            width: 100px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #5d4297;
+            border-radius: 6px;
+            color: #fff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .btn-launch {
+            background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
+            color: #120524;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 78, 80, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-launch:hover { transform: scale(1.03); }
+
+        .btn-back {
+            background: transparent;
+            border: 2px solid #5d4297;
+            color: #d1dbff;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-bar">
+        <span style="font-weight:bold; color:#ffd700; font-size:18px;">🧪 數學小遊戲：拋物線加農砲</span>
+        <span>💎 擁有寶石：<span id="gemCount">0</span></span>
+    </div>
+
+    <div class="game-selection-panel">
+        <h3 style="color:#ffd700; margin:0;">🎯 二次函數頂點式 (Vertex Form) 實彈模擬</h3>
+        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
+            <b>遊戲規則</b>：在右側輸入拋物線 $y = a(x - h)^2 + k$ 的各項參數，調整砲彈的彈道曲線，成功擊中座標網格中的黃金目標！<br>
+            擊中黃金目標，將會獲得 <b>100 寶石</b> 獎勵！
+        </p>
+
+        <div class="cannon-workspace">
+            <!-- 左側：網格砲台 -->
+            <div class="grid-canvas-box">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <!-- 右側：參數輸入 -->
+            <div class="control-inputs-box">
+                <div>
+                    <h4 style="margin-top:0; color:#00ffcc;">🔬 彈道方程式</h4>
+                    <div class="formula-preview" id="formulaText">y = a(x - h)² + k</div>
+                    
+                    <div class="input-row">
+                        <label>開口/拉伸 (a):</label>
+                        <input type="number" step="0.05" id="paramA" value="-0.1" oninput="updateFormula()">
+                    </div>
+                    <div class="input-row">
+                        <label>頂點 X 座標 (h):</label>
+                        <input type="number" step="1" id="paramH" value="5" oninput="updateFormula()">
+                    </div>
+                    <div class="input-row">
+                        <label>頂點 Y 座標 (k):</label>
+                        <input type="number" step="1" id="paramK" value="8" oninput="updateFormula()">
+                    </div>
+                </div>
+
+                <button class="btn-launch" onclick="launchProjectile()">🔥 發發射魔法砲彈</button>
+            </div>
+        </div>
+        <div id="gameFeedback" style="margin-top:15px; font-weight:bold; text-align:center; min-height:22px;"></div>
+    </div>
+
+    <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+
+    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
+    let supabaseClient = null;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    const studentId = localStorage.getItem('supabase_student_id');
+    const studentName = localStorage.getItem('supabase_student_name');
+    let gems = 0;
+
+    // 畫布與坐標設置
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let targetX = 8;
+    let targetY = 4;
+    const scale = 30; // 每個網格 30 像素
+    const originX = 50; // 原點位置
+    const originY = 300;
+
+    let projX = 0;
+    let tracePoints = [];
+    let animationId = null;
+
+    async function initGame() {
+        if (!studentId) {
+            alert('請先登入！');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            let user = users[studentName];
+            if (user) gems = user.gems;
+        } else {
+            const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
+            if (data) gems = data.gems;
+        }
+        document.getElementById('gemCount').innerText = gems;
+
+        resetTarget();
+        drawGrid();
+        updateFormula();
+    }
+
+    function resetTarget() {
+        targetX = Math.floor(Math.random() * 5) + 6; // 6 至 10 區間
+        targetY = Math.floor(Math.random() * 6) + 2; // 2 至 7 區間
+        document.getElementById('gameFeedback').innerText = '';
+    }
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 畫網格線
+        ctx.strokeStyle = '#1e1a3c';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += scale) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += scale) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // 畫坐標軸
+        ctx.strokeStyle = '#5d4297';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
+
+        // 畫發射台 (0, 0)
+        ctx.fillStyle = '#ff4e50';
+        ctx.beginPath(); ctx.arc(originX, originY, 10, 0, Math.PI * 2); ctx.fill();
+
+        // 畫黃金標靶
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(originX + targetX * scale, originY - targetY * scale, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // 重置陰影
+
+        // 畫飛行後的歷史軌跡線
+        if (tracePoints.length > 0) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(originX + tracePoi
