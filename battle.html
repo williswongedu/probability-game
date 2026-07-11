@@ -3,316 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數源對決 - 線上對戰殿堂</title>
+    <title>數源對決 - TCG 皇家決鬥場</title>
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --stadium-bg: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=1600&auto=format&fit=crop');
+            --stadium-gradient: radial-gradient(circle at center, #1b2660 0%, #030514 100%);
+            --holo-laser: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255, 215, 0, 0.25) 25%, rgba(0, 255, 255, 0.25) 50%, rgba(255, 0, 255, 0.2) 75%, rgba(255,255,255,0) 100%);
         }
 
-        body {
-            background: #04020a;
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background: #030209;
             color: #d1dbff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 10px;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; box-sizing: border-box;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        .battle-stadium-bg {
-            position: absolute;
-            top: -5%; left: -5%;
-            width: 110%; height: 110%;
-            background: var(--stadium-bg) center/cover no-repeat;
-            opacity: 0.15;
-            filter: blur(5px);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .battle-arena-layout {
             display: flex;
-            gap: 20px;
-            max-width: 1100px;
-            width: 100%;
             justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 10px;
-            z-index: 10;
+            align-items: center;
+            overflow: hidden;
         }
 
-        .combat-table {
-            flex: 1.4;
-            min-width: 350px;
-            background: rgba(8, 12, 38, 0.95);
-            border: 3px solid #00ffcc;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 0 35px rgba(0, 255, 204, 0.2);
-            box-sizing: border-box;
-            backdrop-filter: blur(5px);
-        }
-
-        .duel-board-ptcg {
+        /* 💡 還原直立式 Mobile-first 3D 戰道盤面容器 */
+        .phone-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 430px;
+            max-height: 850px;
+            background: var(--stadium-gradient);
+            border: 4px solid #3a2f6b;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 30px rgba(93,66,151,0.4);
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            border: 2px solid #233470;
-            border-radius: 16px;
-            background: rgba(0,0,0,0.5);
-            padding: 20px;
-            position: relative;
-            perspective: 1000px;
+            justify-content: space-between;
+            box-sizing: border-box;
+            padding: 15px;
+            perspective: 1200px; /* 提供極致 3D 空間景深 */
         }
 
-        .battle-zone-segment {
+        /* 頂端與底端狀態欄 */
+        .navbar-status {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffd700;
+            z-index: 10;
+            background: rgba(10, 6, 24, 0.6);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(224, 192, 104, 0.3);
+        }
+
+        /* 3D 傾斜橢圓戰場 (Tilted Arena) */
+        .battlefield-3d {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transform-style: preserve-3d;
+            transform: rotateX(20deg) translateZ(0); /* 完美還原 PTCGP 斜切桌面 */
+            margin: 10px 0;
+        }
+
+        /* ==================== 敵方戰區 (Opponent) ==================== */
+        .opponent-zone {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transform-style: preserve-3d;
+        }
+
+        /* 敵方備戰區 (Opponent Bench) */
+        .opp-bench-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            transform: translateZ(10px);
+        }
+
+        .mini-bench-card {
+            width: 50px;
+            height: 70px;
+            background: linear-gradient(135deg, #4c1a1a 0%, #1a0505 100%);
+            border: 1.5px solid #ff4d4d;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
             justify-content: space-around;
             align-items: center;
-            min-height: 150px;
-            background: linear-gradient(170deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.04) 100%);
-            border-radius: 12px;
-            padding: 10px;
-            transform: rotateX(15deg);
-            transform-style: preserve-3d;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            font-size: 8px;
+            font-weight: bold;
+            color: #ff9e9e;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            position: relative;
         }
 
-        .active-slot-ptcg {
-            width: 110px;
-            height: 150px;
-            border: 2.5px solid #e0c068;
-            border-radius: 10px;
+        /* 敵方主戰位 (Opponent Active) */
+        .opp-active-slot {
+            width: 90px;
+            height: 125px;
             background: linear-gradient(135deg, #1b0e35 0%, #050212 100%);
+            border: 2px solid #ff3e3e;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(255, 62, 62, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 10px;
+            transform: translateZ(20px);
+            position: relative;
+        }
+
+        /* ==================== 我方戰區 (Player) ==================== */
+        .player-zone {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transform-style: preserve-3d;
+        }
+
+        /* 我方主戰位 (Player Active) */
+        .player-active-slot {
+            width: 100px;
+            height: 140px;
+            background: linear-gradient(135deg, #1b0e35 0%, #050212 100%);
+            border: 2.5px solid #00ffcc;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-around;
             font-size: 11px;
-            padding: 8px;
-            box-sizing: border-box;
-            text-align: center;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.7);
-            transform: translateZ(30px);
+            transform: translateZ(30px); /* 3D 浮空高度 */
+            position: relative;
             transform-style: preserve-3d;
-            transition: all 0.3s;
         }
 
-        .bench-zone-ptcg {
+        /* 我方備戰區 (Player Bench Slots) */
+        .player-bench-row {
             display: flex;
             gap: 10px;
             justify-content: center;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px dashed #233470;
-            margin-top: 10px;
-            transform: rotateX(10deg);
-            transform-style: preserve-3d;
+            transform: translateZ(15px);
         }
 
-        .bench-slot {
-            width: 65px;
-            height: 85px;
-            border: 1.5px dashed rgba(255,255,255,0.3);
+        .player-bench-card {
+            width: 55px;
+            height: 75px;
+            background: linear-gradient(135deg, #0e2b35 0%, #020b12 100%);
+            border: 1.5px solid #00bfff;
             border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #00ffff;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .player-bench-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            border-color: #fff;
+        }
+
+        /* HP 條樣式 */
+        .hp-badge {
+            font-size: 8px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        /* ==================== 💥 受擊金色光圈暴擊 (Hit Splash VFX) ==================== */
+        .hit-splash-container {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) translateZ(60px); /* 3D 頂層爆發 */
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .hit-circle-pulse {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+            box-shadow: 0 0 35px #ffd700, inset 0 0 25px #ffd700;
+            animation: hit-pulse-scale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .hit-damage-text {
+            position: absolute;
+            font-size: 46px;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Arial Black', sans-serif;
+            text-shadow: 0 0 15px #ffd700, 2px 2px 4px #000;
+            animation: hit-text-bounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            z-index: 10;
+        }
+
+        @keyframes hit-pulse-scale {
+            0% { transform: scale(0.2); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        @keyframes hit-text-bounce {
+            0% { transform: scale(0.3); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1.0); }
+        }
+
+        /* ==================== ⚡ 右下角星源能量充能鈕 (Energy Bolt) ==================== */
+        .energy-generator {
+            position: absolute;
+            bottom: 120px; right: 15px;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffeb3b 30%, #f57f17 100%);
+            border: 3px solid #fff;
+            box-shadow: 0 0 20px #ffeb3b;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 9px;
-            background: rgba(0,0,0,0.4);
+            font-size: 24px;
             cursor: pointer;
-            transition: all 0.2s;
-            color: #aaa;
-            transform: translateZ(10px);
+            z-index: 20;
+            transition: transform 0.2s;
         }
 
-        .bench-slot.filled {
-            border-style: solid;
-            border-color: #00bfff;
-            background: #0f153a;
+        .energy-generator:hover { transform: scale(1.1); }
+
+        /* ==================== 🃏 底部手牌區 ==================== */
+        .hand-fanned-zone {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: 10px;
+            z-index: 20;
+        }
+
+        .hand-card-tcg {
+            width: 65px;
+            height: 90px;
+            border: 1.5px solid #e0c068;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #130a2a 0%, #050211 100%);
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            box-sizing: border-box;
             color: #fff;
+            font-size: 8px;
             font-weight: bold;
-            box-shadow: 0 5px 10px rgba(0, 191, 255, 0.3);
-        }
-
-        .bench-slot:hover {
-            transform: translateZ(20px) scale(1.08);
-            border-color: #00ffcc;
-        }
-
-        .hp-segment {
-            width: 100%;
             text-align: center;
-            transform: translateZ(10px);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            transition: transform 0.2s, bottom 0.2s;
+            transform-origin: bottom center;
         }
 
-        .hp-bar-tcg {
-            width: 100%;
-            height: 6px;
-            background: #222;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 4px;
+        /* 💡 限制定位 */
+        .hand-card-tcg:nth-child(1) { transform: rotate(-15deg) translateX(-60px); }
+        .hand-card-tcg:nth-child(2) { transform: rotate(-5deg) translateX(-20px); }
+        .hand-card-tcg:nth-child(3) { transform: rotate(5deg) translateX(20px); }
+        .hand-card-tcg:nth-child(4) { transform: rotate(15deg) translateX(60px); }
+
+        .hand-card-tcg:hover {
+            transform: scale(1.25) translateY(-20px) rotate(0deg);
+            z-index: 50;
+            border-color: #00ffcc;
+            box-shadow: 0 10px 25px rgba(0,255,204,0.5);
         }
 
-        .hp-bar-tcg-fill {
-            width: 100%;
-            height: 100%;
-            background: #ff4d4d;
-            transition: width 0.3s;
-        }
-
-        .quiz-panel-ptcg {
-            background: rgba(0,0,0,0.65);
+        /* ==================== 🔬 答題與充能面板 ==================== */
+        .control-quiz-overlay {
+            background: rgba(8, 6, 26, 0.95);
             border: 2px solid #00ffcc;
             border-radius: 12px;
-            padding: 15px;
-            margin-top: 15px;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            padding: 12px;
+            box-shadow: 0 0 20px rgba(0,255,204,0.3);
+            margin-top: 10px;
+            z-index: 30;
         }
 
         .quiz-title {
             color: #00ffff;
+            font-size: 11px;
             font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .quiz-body {
             font-size: 13px;
-            margin-bottom: 6px;
-        }
-
-        .quiz-desc {
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 12px;
+            line-height: 1.4;
             color: #e2d9f3;
+            margin-bottom: 8px;
         }
 
-        .quiz-input-group {
+        .quiz-input-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .quiz-input-group input {
+        .quiz-input-row input {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             background: rgba(255,255,255,0.05);
             border: 1px solid #5d4297;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #fff;
             text-align: center;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
         }
 
-        .btn-fire-ptcg {
-            padding: 10px 24px;
+        .btn-launch-ptcg {
+            padding: 8px 16px;
             background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #120524;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
-        }
-
-        .combat-sidebar {
-            flex: 0.6;
-            min-width: 260px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn-back {
-            background: transparent;
-            border: 2px solid #5d4297;
-            color: #d1dbff;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-<div class="battle-stadium-bg" id="parallaxStadium"></div>
+<div class="phone-container">
+    <!-- 頂部狀態欄 -->
+    <div class="navbar-status">
+        <span>⚔️ 概率 TCG 決鬥場</span>
+        <span>💎 寶石：<span id="gemCount">0</span></span>
+    </div>
 
-<div style="display:flex; justify-content:space-between; width:100%; max-width:1100px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:8px; margin-bottom:15px; z-index:10;">
-    <span style="font-weight:bold; color:#00ffcc; font-size:18px;">⚔️ 概率線上對戰殿堂</span>
-    <span>💎 擁有寶石：<span id="gemCount">0</span></span>
-</div>
-
-<div class="battle-arena-layout">
-    <div class="combat-table">
-        <div class="duel-board-ptcg">
-            <!-- 敵方半場 -->
-            <div style="font-size:11px; color:#ff7a7a; font-weight:bold; text-align:center;">🔴 敵方半場 (OPPONENT SEGMENT)</div>
-            <div class="battle-zone-segment">
-                <div class="active-slot-ptcg" id="enemyActive">
-                    <div style="font-weight:bold; color:#ff7a7a;">混沌獸 EX</div>
-                    <div style="font-size:40px; transform: translateZ(15px);">👿</div>
-                    <div class="hp-segment">
-                        HP: <span id="enemyActiveHP">300</span>/300
-                        <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="enemyActiveHPFill"></div></div>
+    <!-- 3D 戰場盤面 -->
+    <div class="battlefield-3d">
+        <!-- 🔴 敵方半場 (Opponent Field) -->
+        <div class="opponent-zone">
+            <!-- 敵方後排 (Bench) -->
+            <div class="opp-bench-row">
+                <div class="mini-bench-card" id="oppBench0">
+                    <span>🦉 鴞</span>
+                    <span class="hp-badge">HP: <span id="oppBenchHP0">50</span></span>
+                    <!-- 受擊閃光 -->
+                    <div class="hit-splash-container" id="oppBenchSplat0">
+                        <div class="hit-circle-pulse"></div>
+                        <div class="hit-damage-text">50</div>
+                    </div>
+                </div>
+                <div class="mini-bench-card" id="oppBench1">
+                    <span>🐻 熊</span>
+                    <span class="hp-badge">HP: <span id="oppBenchHP1">50</span></span>
+                    <div class="hit-splash-container" id="oppBenchSplat1">
+                        <div class="hit-circle-pulse"></div>
+                        <div class="hit-damage-text">50</div>
                     </div>
                 </div>
             </div>
-            
-            <hr style="border:0; border-top:1px dashed #233470; margin:10px 0;">
 
-            <!-- 我方半場 -->
-            <div style="font-size:11px; color:#00ffcc; font-weight:bold; text-align:center;">🟢 我方半場 (PLAYER SEGMENT)</div>
-            <div class="battle-zone-segment">
-                <div class="active-slot-ptcg" id="playerActive">
-                    <div style="font-weight:bold; color:#00ffff;" id="playerActiveName">主戰位</div>
-                    <div style="font-size:40px; transform: translateZ(15px);" id="playerActiveEmoji">❔</div>
-                    <div class="hp-segment" id="playerActiveHPBox" style="display:none;">
-                        HP: <span id="playerActiveHP">120</span>/120
-                        <div class="hp-bar-tcg"><div class="hp-bar-tcg-fill" id="playerActiveHPFill"></div></div>
-                    </div>
-                    <div id="playerActiveSkill" style="font-size:9px; color:#ccc;">請從下方備戰區派遣英靈出戰</div>
+            <!-- 敵方前排主力 (Active) -->
+            <div class="opp-active-slot" id="oppActive">
+                <div style="font-weight:bold; color:#ff4d4d;">混沌獸 EX</div>
+                <div style="font-size:32px;">👿</div>
+                <span class="hp-badge">HP: <span id="oppActiveHP">110</span>/300</span>
+                
+                <!-- 敵方主力爆血 110 -->
+                <div class="hit-splash-container" id="oppActiveSplat">
+                    <div class="hit-circle-pulse"></div>
+                    <div class="hit-damage-text">110</div>
                 </div>
             </div>
-
-            <!-- 我方備戰區 -->
-            <div class="bench-zone-ptcg" id="playerBench"></div>
         </div>
 
-        <div class="quiz-panel-ptcg">
-            <div class="quiz-title">✨ 發動公式必殺連擊</div>
-            <div class="quiz-desc" id="quizDesc">請先從備戰區點擊派遣一位英靈上陣，以啟動城堡決鬥！</div>
-            <div class="quiz-input-group">
-                <input type="number" step="0.1" id="quizInput" placeholder="輸入期望傷害或概率值">
-                <button class="btn-fire-ptcg" onclick="submitDuelAction()">發動必殺</button>
+        <!-- ⚡ 右側星源能量球 -->
+        <div class="energy-generator" onclick="triggerEnergyCharge()">⚡</div>
+
+        <!-- 🟢 我方半場 (Player Field) -->
+        <div class="player-zone">
+            <!-- 我方前排主力 (Active) -->
+            <div class="player-active-slot" id="playerActive">
+                <div style="font-weight:bold; color:#00ffcc;" id="playerActiveName">主戰英靈</div>
+                <div style="font-size:36px;" id="playerActiveEmoji">❔</div>
+                <span class="hp-badge" id="playerActiveHPBox" style="display:none;">HP: <span id="playerActiveHP">120</span>/120</span>
+                <span style="font-size:8px; color:#ccc;" id="playerActiveSkill">請從後備派遣出戰</span>
             </div>
-            <div id="duelFeedback" style="margin-top:10px; font-weight:bold; text-align:center; min-height:20px;"></div>
+
+            <!-- 我方後排備戰 (Bench) -->
+            <div class="player-bench-row" id="playerBench"></div>
         </div>
     </div>
 
-    <div class="combat-sidebar">
-        <div style="background:rgba(0,0,0,0.6); border:2px solid #e0c068; border-radius:15px; padding:15px;">
-            <h3 style="color:#ffd700; margin-top:0; font-size:15px;">📡 連線模式切換</h3>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-fire-ptcg" style="font-size:12px; padding:8px;" onclick="switchMode('AI')">🤖 城堡練習模式 (單人 AI)</button>
-                <button class="btn-fire-ptcg" style="font-size:12px; padding:8px; background:linear-gradient(135deg, #7c4dff 0%, #3f1fa3 100%); border:1px solid #fff;" onclick="switchMode('ONLINE')">🌐 線上同好對決 (實時 Room)</button>
-            </div>
-            <div id="modeStatus" style="margin-top:10px; font-size:11px; color:#00ffcc; font-weight:bold; text-align:center;">目前模式：練習 AI 對戰</div>
+    <!-- 🃏 底部手牌區 -->
+    <div class="hand-fanned-zone" id="playerHand">
+        <div class="hand-card-tcg" onclick="playHand(0)">
+            <span>人物 EX</span>
+            <span style="font-size:16px;">🧙‍♂️</span>
+            <span>高斯 EX</span>
         </div>
-
-        <div style="background:rgba(0,0,0,0.5); border:2px solid #233470; border-radius:12px; padding:15px; font-size:12px; line-height:1.5;">
-            <h4 style="margin-top:0; color:#ffd700;">DSE 對戰精算策略：</h4>
-            1. <b>人物角色 (EX)</b>：打出 100 點主要傷害。<br>
-            2. <b>神仙寵物 (Pet)</b>：防守敵方 30 點傷害。<br>
-            3. <b>武器裝備 (Weapon)</b>：答對後附加 50 點額外暴擊。
+        <div class="hand-card-tcg" onclick="playHand(1)">
+            <span>神獸 Pet</span>
+            <span style="font-size:16px;">🦉</span>
+            <span>阿基米德鴞</span>
         </div>
+        <div class="hand-card-tcg" onclick="playHand(2)">
+            <span>加成卡</span>
+            <span style="font-size:16px;">🔱</span>
+            <span>三叉戟</span>
+        </div>
+        <div class="hand-card-tcg" onclick="playHand(3)">
+            <span>人物 EX</span>
+            <span style="font-size:16px;">🔮</span>
+            <span>費馬 EX</span>
+        </div>
+    </div>
 
-        <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
+    <!-- 🔬 答題充能控制台 -->
+    <div class="control-quiz-overlay">
+        <div class="quiz-title" id="quizTitle">★ 點擊右下角 [⚡] 進行星源充能</div>
+        <div class="quiz-body" id="quizBody">派遣你手牌或後備區 of your deck to the active slot to start!</div>
+        <div class="quiz-input-row">
+            <input type="number" step="0.1" id="quizInput" placeholder="輸入算術數值">
+            <button class="btn-launch-ptcg" onclick="submitQuizAction()">發動必殺</button>
+        </div>
+        <div id="duelFeedback" style="margin-top:6px; font-size:10px; font-weight:bold; text-align:center; min-height:14px;"></div>
     </div>
 </div>
 
@@ -331,12 +478,15 @@
     let gems = 0;
     let unlockedCards = [];
     let currentDeck = [];
-    let currentActiveIndex = -1; 
-    let currentMode = 'AI'; 
+    let currentActiveIndex = -1;
 
-    let enemyHP = 300;
+    let oppActiveHP = 110;
+    let oppBenchHP0 = 50;
+    let oppBenchHP1 = 50;
+
     let currentQuizAns = 0;
     let currentTopic = '';
+    let actionType = ''; // 'ATTACK' or 'CHARGE'
 
     const fullCardStats = {
         '雷鳴精算師 · 高斯': { name: '雷鳴精算師 · 高斯', emoji: '🧙‍♂️', hp: 120, skill: '常態修正', type: '人物角色' },
@@ -348,34 +498,15 @@
         '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡' }
     };
 
-    const parallaxStadium = document.getElementById('parallaxStadium');
-    window.addEventListener('mousemove', (e) => {
-        const x = (window.innerWidth / 2 - e.clientX) / 45;
-        const y = (window.innerHeight / 2 - e.clientY) / 45;
-        parallaxStadium.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
-    });
-
     const duelQuizPool = [
         {
             type: 'Expected_Value',
             gen: () => {
                 let dmg = Math.floor(Math.random() * 2) * 50 + 150;
-                let probPercent = Math.floor(Math.random() * 3) * 10 + 50;
-                let ans = dmg * (probPercent / 100);
+                let p = Math.floor(Math.random() * 3) * 10 + 50;
                 return {
-                    text: `敵方釋放迷霧屏障。我方英靈發動期望值領域：有 ${probPercent}% 機率造成 ${dmg} 點傷害，其餘機率 0 傷害，請精算【期望傷害值】。`,
-                    ans: parseFloat(ans.toFixed(1))
-                };
-            }
-        },
-        {
-            type: 'Permutations_Combinations',
-            gen: () => {
-                let items = Math.floor(Math.random() * 3) + 5;
-                let ans = factorial(items) / (factorial(3) * factorial(items - 3));
-                return {
-                    text: `城堡大陣需要部署防禦药水。從 ${items} 種不同的魔法元素中選出 3 種不同的配方，一共有多少種不同的【組合 C】？`,
-                    ans: ans
+                    text: `計算高斯 EX 技能期望傷害：若發動有 ${p}% 機率造成 ${dmg} 點傷害，其餘機率 0。其【期望傷害值】為多少？`,
+                    ans: dmg * (p / 100)
                 };
             }
         },
@@ -384,10 +515,9 @@
             gen: () => {
                 let p = Math.floor(Math.random() * 2) * 10 + 70;
                 let dec = p / 100;
-                let ans = parseFloat((dec * dec * 100).toFixed(1));
                 return {
-                    text: `敵方已被標記。已知標記狀態下，你的必殺技單次暴擊概率高達 ${p}%。在此已知條件下，你連續【兩次必殺技都觸發暴擊】的概率是多少%？`,
-                    ans: ans
+                    text: `已知敵方被標記，貝葉斯 EX 單次暴擊率提升至 ${p}%。在此條件下，你連續【兩次必殺技都暴擊】的概率是多少%？(保留1位小數)`,
+                    ans: parseFloat((dec * dec * 100).toFixed(1))
                 };
             }
         }
@@ -395,7 +525,7 @@
 
     async function initBattle() {
         if (!studentId) {
-            alert('登入失效，請重新登入！');
+            alert('請先登入！');
             window.location.href = 'index.html';
             return;
         }
@@ -422,24 +552,23 @@
     function renderBench() {
         const benchContainer = document.getElementById('playerBench');
         benchContainer.innerHTML = '';
-        for (let i = 0; i < 5; i++) {
-            const bench = document.createElement('div');
-            if (i < currentDeck.length) {
-                const cardName = currentDeck[i];
-                const card = fullCardStats[cardName];
-                bench.innerText = `${card.emoji}\\n${card.name.substring(0, 3)}`;
-                bench.className = 'bench-slot filled';
-                bench.onclick = () => deployToActive(i);
-            } else {
-                bench.innerText = '空';
-                bench.className = 'bench-slot';
-            }
-            benchContainer.appendChild(bench);
+        for (let i = 0; i < currentDeck.length; i++) {
+            const cardName = currentDeck[i];
+            const card = fullCardStats[cardName];
+            if (!card) continue;
+
+            const bCard = document.createElement('div');
+            bCard.className = 'player-bench-card';
+            bCard.innerHTML = `
+                <span>${card.emoji}</span>
+                <span class="hp-badge">HP: ${card.hp}</span>
+            `;
+            bCard.onclick = () => deployToActive(i);
+            benchContainer.appendChild(bCard);
         }
     }
 
     function deployToActive(index) {
-        if (index >= currentDeck.length) return;
         currentActiveIndex = index;
         const cardName = currentDeck[index];
         const card = fullCardStats[cardName];
@@ -448,121 +577,103 @@
         document.getElementById('playerActiveEmoji').innerText = card.emoji;
         document.getElementById('playerActiveHPBox').style.display = 'block';
         document.getElementById('playerActiveHP').innerText = card.hp;
-        document.getElementById('playerActiveHPFill').style.width = '100%';
         document.getElementById('playerActiveSkill').innerText = `必殺技：${card.skill} (${card.type})`;
 
         nextQuizRound();
     }
 
+    function triggerEnergyCharge() {
+        actionType = 'CHARGE';
+        document.getElementById('quizTitle').innerText = '⚡ 星源充能：口算爆速 Gate';
+        
+        let p = Math.floor(Math.random() * 2) * 10 + 40; 
+        let dec = p / 100;
+        currentQuizAns = parseFloat((dec * 2 * 100).toFixed(0)); 
+        
+        document.getElementById('quizBody').innerText = `「擲一魔法硬幣，單次正面率為 ${p}%。連續拋擲兩次，【至少有一次正面】的概率是多少%？」(口算整數)`;
+        document.getElementById('quizInput').value = '';
+    }
+
     function nextQuizRound() {
+        actionType = 'ATTACK';
         const qTemplate = duelQuizPool[Math.floor(Math.random() * duelQuizPool.length)];
         const q = qTemplate.gen();
         currentQuizAns = q.ans;
         currentTopic = qTemplate.type;
 
-        document.getElementById('quizDesc').innerText = q.text;
+        document.getElementById('quizTitle').innerText = '🔥 發動 DSE 必殺連擊';
+        document.getElementById('quizBody').innerText = q.text;
         document.getElementById('quizInput').value = '';
-        document.getElementById('duelFeedback').innerText = '';
     }
 
-    async function submitDuelAction() {
-        if (currentActiveIndex === -1) {
-            alert('請先派遣備戰區的英靈上場！');
-            return;
-        }
-
-        const studentAns = parseFloat(document.getElementById('quizInput').value);
+    async function submitQuizAction() {
+        const val = parseFloat(document.getElementById('quizInput').value);
         const fb = document.getElementById('duelFeedback');
+        if (isNaN(val)) { fb.innerText = '⚠️ 請輸入解！'; return; }
 
-        if (isNaN(studentAns)) {
-            fb.innerText = '⚠️ 請輸入你的答案！';
-            fb.style.color = '#ff4d4d';
-            return;
-        }
-
-        let isCorrect = Math.abs(studentAns - currentQuizAns) <= 0.2;
+        let isCorrect = Math.abs(val - currentQuizAns) <= 0.2;
 
         if (isCorrect) {
-            const cardName = currentDeck[currentActiveIndex];
-            const card = fullCardStats[cardName];
-            
-            let dmg = 100;
-            if (card.type === '寵物') { dmg = 60; }
-            else if (card.type === '武器卡') { dmg = 80; }
-
-            enemyHP -= dmg;
-            if (enemyHP < 0) enemyHP = 0;
-
-            fb.innerText = `⚡【回答正確！】發動必殺技 [${card.skill}]，對敵方造成 ${dmg} 點痛擊！`;
-            fb.style.color = '#00ffcc';
-
-            updateHPBars();
-
-            if (enemyHP <= 0) {
-                fb.innerText = '🏆【封印大捷！】敵方混沌獸已完全擊潰！恭喜獲得 150 寶石獎勵！';
-                gems += 150;
-                document.getElementById('gemCount').innerText = gems;
-
-                if (isLocalMode) {
-                    let users = JSON.parse(localStorage.getItem('local_users') || '{}');
-                    if (users[studentName]) {
-                        users[studentName].gems = gems;
-                        localStorage.setItem('local_users', JSON.stringify(users));
-                    }
-                } else {
-                    await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
-                }
+            if (actionType === 'CHARGE') {
+                fb.innerText = '⚡【充能成功！】星源附著成功，主戰英靈攻擊力增加 20 點！';
+                fb.style.color = '#00ffcc';
+                setTimeout(nextQuizRound, 2000);
+            } else {
+                triggerCombatSplashes();
             }
         } else {
-            fb.innerText = `❌【公式反噬！】計算失誤。受到 40 反噬傷害！（正確答案是 ${currentQuizAns}）`;
+            fb.innerText = `❌ 計算錯誤！受到城堡大陣反噬 40 傷害！（正確答案是 ${currentQuizAns}）`;
             fb.style.color = '#ff4d4d';
         }
-
-        await uploadDSERecord(isCorrect);
-        setTimeout(nextQuizRound, 2500);
     }
 
-    function updateHPBars() {
-        document.getElementById('enemyActiveHP').innerText = enemyHP;
-        document.getElementById('enemyActiveHPFill').style.width = `${(enemyHP/300)*100}%`;
-    }
+    function triggerCombatSplashes() {
+        const splatActive = document.getElementById('oppActiveSplat');
+        splatActive.style.display = 'flex';
+        oppActiveHP -= 110;
+        if (oppActiveHP < 0) oppActiveHP = 0;
+        document.getElementById('oppActiveHP').innerText = oppActiveHP;
 
-    async function uploadDSERecord(isCorrect) {
-        if (isLocalMode) return;
-        try {
-            const { data: record } = await supabaseClient.from('dse_records').select('*').eq('student_id', studentId).eq('topic', currentTopic).single();
-            if (record) {
-                await supabaseClient.from('dse_records').update({
-                    total_attempts: record.total_attempts + 1,
-                    correct_attempts: record.correct_attempts + (isCorrect ? 1 : 0)
-                }).eq('id', record.id);
+        const splatBench0 = document.getElementById('oppBenchSplat0');
+        const splatBench1 = document.getElementById('oppBenchSplat1');
+        splatBench0.style.display = 'flex';
+        splatBench1.style.display = 'flex';
+
+        oppBenchHP0 -= 50; if (oppBenchHP0 < 0) oppBenchHP0 = 0;
+        oppBenchHP1 -= 50; if (oppBenchHP1 < 0) oppBenchHP1 = 0;
+
+        document.getElementById('oppBenchHP0').innerText = oppBenchHP0;
+        document.getElementById('oppBenchHP1').innerText = oppBenchHP1;
+
+        setTimeout(() => {
+            splatActive.style.display = 'none';
+            splatBench0.style.display = 'none';
+            splatBench1.style.display = 'none';
+            
+            if (oppActiveHP <= 0 && oppBenchHP0 <= 0 && oppBenchHP1 <= 0) {
+                triggerWin();
             } else {
-                await supabaseClient.from('dse_records').insert([{
-                    student_id: studentId,
-                    topic: currentTopic,
-                    total_attempts: 1,
-                    correct_attempts: isCorrect ? 1 : 0
-                }]);
+                nextQuizRound();
             }
-        } catch (e) {
-            console.error(e);
-        }
+        }, 2500);
     }
 
-    function switchMode(mode) {
-        currentMode = mode;
-        const status = document.getElementById('modeStatus');
-        if (mode === 'AI') {
-            status.innerText = '目前模式：練習 AI 對戰';
+    async function triggerWin() {
+        alert('🎉【榮耀大捷！】你成功擊潰了混沌獸及其所有後備部隊！獲得 150 寶石！');
+        gems += 150;
+        document.getElementById('gemCount').innerText = gems;
+
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            if (users[studentName]) {
+                users[studentName].gems = gems;
+                localStorage.setItem('local_users', JSON.stringify(users));
+            }
         } else {
-            status.innerText = '目前模式：線上同好對決 (實時 Room 連線中...)';
-            alert('📡 Supabase Room 已建立！歡迎將網址分享給其他同學進行即時智力比拼！');
+            await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
         }
-    }
-
-    function factorial(n) {
-        if (n === 0 || n === 1) return 1;
-        return n * factorial(n - 1);
+        localStorage.setItem('cached_gems', gems);
+        window.location.href = 'lobby.html';
     }
 
     initBattle();
