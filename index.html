@@ -1,16 +1,10 @@
-# Let's write the fully updated, robust, 100% pure HTML files with local storage fallback 
-# so they work instantly without Supabase and have perfectly synchronized gems.
-# This fixes the leaked python comments in lobby.html, resolves the softlock by adding a Gem Fountain,
-# and synchronizes gem counts across all files.
-
-import os
-
-index_html_v3 = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數源對決 - 星導城堡傳送門</title>
+    <!-- 引入 Supabase 官方 JS SDK CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body, html {
@@ -24,6 +18,7 @@ index_html_v3 = """<!DOCTYPE html>
             align-items: center;
         }
 
+        /* 星空背景 */
         .stars {
             position: absolute;
             width: 100%; height: 100%;
@@ -38,6 +33,7 @@ index_html_v3 = """<!DOCTYPE html>
             100% { opacity: 0.35; transform: scale(1.03); }
         }
 
+        /* 3D 故事前傳卡片 */
         .story-wrapper {
             perspective: 1000px;
             z-index: 10;
@@ -47,7 +43,7 @@ index_html_v3 = """<!DOCTYPE html>
         .scroll-container {
             width: 380px;
             background: rgba(18, 9, 34, 0.9);
-            border: 3px double #e0c068;
+            border: 3px double #e0c068; /* 經典玫瑰金框 */
             border-radius: 16px;
             padding: 30px;
             box-shadow: 0 0 35px rgba(224, 192, 104, 0.25);
@@ -56,6 +52,7 @@ index_html_v3 = """<!DOCTYPE html>
             transform-style: preserve-3d;
         }
 
+        /* 故事文本 */
         .story-text {
             font-size: 16px;
             line-height: 1.8;
@@ -84,6 +81,7 @@ index_html_v3 = """<!DOCTYPE html>
             transform: scale(1.05);
         }
 
+        /* 隱藏登入介面，後續動態顯示 */
         .login-box {
             display: none;
             opacity: 0;
@@ -167,13 +165,16 @@ index_html_v3 = """<!DOCTYPE html>
 <div class="stars"></div>
 
 <div class="story-wrapper" id="cardWrapper">
+    <!-- 故事前傳與登入的 3D 旋轉主容器 -->
     <div class="scroll-container" id="container">
+        <!-- A. 故事版面 -->
         <div id="storyPanel">
             <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); margin-top: 0;">星導城堡前傳</h2>
             <div class="story-text" id="storyText"></div>
             <button class="btn-start" id="startBtn" onclick="flipToLogin()">開啟概率傳送門</button>
         </div>
 
+        <!-- B. 登入與註冊版面 -->
         <div id="loginPanel" class="login-box">
             <h2 style="color: #ffd700; margin-top:0;">數源對決</h2>
             <p style="font-size:12px; color:#a291c9; margin-bottom:20px;">—— 概率塔的煉金術士傳送門 ——</p>
@@ -217,6 +218,7 @@ index_html_v3 = """<!DOCTYPE html>
         }
     }
 
+    // 3D 翻轉至登入頁面
     function flipToLogin() {
         const wrapper = document.getElementById('cardWrapper');
         const storyPanel = document.getElementById('storyPanel');
@@ -264,12 +266,12 @@ index_html_v3 = """<!DOCTYPE html>
         showMsg('🌀 正在啟動召喚儀式...', '#ffd700');
 
         if (isLocalMode) {
-            // 本地測試模式：使用 localStorage
             let users = JSON.parse(localStorage.getItem('local_users') || '{}');
             if (users[username]) {
                 showMsg('❌ 此學號已被註冊！請直接登入。', '#ff4d4d');
                 return;
             }
+            // 贈送 1000 寶石和開局初始卡牌
             users[username] = { password, gems: 1000, unlocked_cards: ['雷鳴精算師 · 高斯', '貝葉斯羅盤'], current_deck: ['雷鳴精算師 · 高斯', '貝葉斯羅盤'] };
             localStorage.setItem('local_users', JSON.stringify(users));
             showMsg('🎉 [本地測試模式] 註冊成功！贈送 1000 寶石！請點擊「登入」。', '#00ffcc');
@@ -318,7 +320,7 @@ index_html_v3 = """<!DOCTYPE html>
             if (user && user.password === password) {
                 localStorage.setItem('supabase_student_id', username);
                 localStorage.setItem('supabase_student_name', username);
-                localStorage.setItem('local_active_user', username); // 標記當前登入者
+                localStorage.setItem('local_active_user', username);
                 showMsg(`🔓 [本地模式] 歡迎，${username}！傳送至夢幻城堡...`, '#00ffcc');
                 setTimeout(() => { window.location.href = 'lobby.html'; }, 1500);
             } else {
@@ -353,11 +355,3 @@ index_html_v3 = """<!DOCTYPE html>
 </script>
 </body>
 </html>
-"""
-
-# Write index.html
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(index_html_v3)
-
-print("index.html updated.")
-
