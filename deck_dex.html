@@ -217,7 +217,7 @@
 
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
-    let unlockedCards = {}; // 改為物件字典：{"卡牌名": 擁有數量}
+    let unlockedCards = {}; // 擁有的卡牌字典：{"卡牌名字": 數量}
     let selectedDeck = [];
     let gems = 0;
 
@@ -256,7 +256,7 @@
             }
         }
 
-        // 兼容並遷移舊版 Array 背包至重複數量 Object 字典
+        // 兼容並遷移舊版背包陣列至字典計數模式
         if (Array.isArray(rawUnlocked)) {
             unlockedCards = {};
             rawUnlocked.forEach(name => {
