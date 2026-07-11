@@ -217,7 +217,7 @@
 
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
-    let unlockedCards = [];
+    let unlockedCards = {}; // 改為物件字典：{"卡牌名": 擁有數量}
     let selectedDeck = [];
     let gems = 0;
 
@@ -238,21 +238,32 @@
             return;
         }
 
+        let rawUnlocked = [];
         if (isLocalMode) {
             let users = JSON.parse(localStorage.getItem('local_users') || '{}');
             let user = users[studentName];
             if (user) {
                 gems = user.gems;
-                unlockedCards = user.unlocked_cards || [];
+                rawUnlocked = user.unlocked_cards || [];
                 selectedDeck = user.current_deck || [];
             }
         } else {
             const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
             if (data) {
                 gems = data.gems;
-                unlockedCards = data.unlocked_cards || [];
+                rawUnlocked = data.unlocked_cards || [];
                 selectedDeck = data.current_deck || [];
             }
+        }
+
+        // 兼容並遷移舊版 Array 背包至重複數量 Object 字典
+        if (Array.isArray(rawUnlocked)) {
+            unlockedCards = {};
+            rawUnlocked.forEach(name => {
+                unlockedCards[name] = (unlockedCards[name] || 0) + 1;
+            });
+        } else {
+            unlockedCards = rawUnlocked || {};
         }
 
         document.getElementById('gemCount').innerText = gems;
@@ -267,7 +278,8 @@
         fullCardDatabase.forEach(card => {
             if (filter !== 'all' && card.type !== filter) return;
 
-            const isUnlocked = unlockedCards.includes(card.name);
+            const cardCount = unlockedCards[card.name] || 0;
+            const isUnlocked = cardCount > 0;
             const isSelected = selectedDeck.includes(card.name);
 
             const cardEl = document.createElement('div');
@@ -276,7 +288,7 @@
                 <div style="font-size:11px; font-weight:bold;">${card.type}</div>
                 <div class="album-card-emoji">${card.emoji}</div>
                 <div style="font-size:13px; font-weight:bold;">${card.name}</div>
-                <div style="font-size:11px; color:#aaa; margin-top:5px;">${isUnlocked ? '🔓 已擁有' : '🔒 鎖定中'}</div>
+                <div style="font-size:11px; color:#aaa; margin-top:5px;">${isUnlocked ? '🔓 已擁有 x ' + cardCount : '🔒 鎖定中'}</div>
             `;
 
             if (isUnlocked) {
