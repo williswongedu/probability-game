@@ -1,4 +1,4 @@
-deck_dex_html_v3 = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -206,8 +206,8 @@ deck_dex_html_v3 = """<!DOCTYPE html>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 
     let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
     let supabaseClient = null;
@@ -354,10 +354,4 @@ deck_dex_html_v3 = """<!DOCTYPE html>
     initDex();
 </script>
 </body>
-</html>"""
-
-with open('deck_dex.html', 'w', encoding='utf-8') as f:
-    f.write(deck_dex_html_v3)
-
-print("deck_dex.html updated with sync + fallback.")
-
+</html>
