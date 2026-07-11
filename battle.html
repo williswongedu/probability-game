@@ -43,12 +43,112 @@
             perspective: 1200px; /* 提供極致 3D 空間景深 */
         }
 
+        /* 門票登入與連線選擇 Overlay */
+        .setup-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 6, 24, 0.95);
+            z-index: 100;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .setup-box {
+            width: 100%;
+            text-align: center;
+        }
+
+        .setup-title {
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            margin-bottom: 25px;
+        }
+
+        .btn-mode {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-mode.primary {
+            background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
+            color: #120524;
+        }
+
+        .btn-mode.secondary {
+            background: linear-gradient(135deg, #7c4dff 0%, #3f1fa3 100%);
+            color: #fff;
+            border: 1px solid #ffd700;
+        }
+
+        .room-inputs {
+            display: none;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .room-inputs input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #5d4297;
+            border-radius: 6px;
+            color: #fff;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* 🪙 3D 金幣拋擲動畫 */
+        .coin-toss-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 2, 18, 0.9);
+            z-index: 90;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .coin-3d {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ffe14c 40%, #b8860b 100%);
+            border: 4px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #120524;
+            transform-style: preserve-3d;
+            transition: transform 3s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+
         /* 頂端與底端狀態欄 */
         .navbar-status {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #ffd700;
             z-index: 10;
@@ -58,7 +158,7 @@
             border: 1px solid rgba(224, 192, 104, 0.3);
         }
 
-        /* 3D 傾斜橢圓戰場 (Tilted Arena) */
+        /* 3D 傾斜橢圓戰場 */
         .battlefield-3d {
             flex-grow: 1;
             position: relative;
@@ -67,8 +167,31 @@
             justify-content: space-between;
             align-items: center;
             transform-style: preserve-3d;
-            transform: rotateX(20deg) translateZ(0); /* 完美還原 PTCGP 斜切桌面 */
+            transform: rotateX(18deg) translateZ(0); /* 完美還原 PTCGP 斜切桌面 */
             margin: 10px 0;
+        }
+
+        /* 回合 Banner 提示 */
+        .turn-banner {
+            position: absolute;
+            top: 45%; left: 50%;
+            transform: translate(-50%, -50%) translateZ(80px);
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 204, 0.8) 50%, transparent 100%);
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px #00ffcc;
+            z-index: 60;
+            display: none;
+            animation: banner-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes banner-glow {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
 
         /* ==================== 敵方戰區 (Opponent) ==================== */
@@ -81,7 +204,6 @@
             transform-style: preserve-3d;
         }
 
-        /* 敵方備戰區 (Opponent Bench) */
         .opp-bench-row {
             display: flex;
             gap: 10px;
@@ -106,7 +228,6 @@
             position: relative;
         }
 
-        /* 敵方主戰位 (Opponent Active) */
         .opp-active-slot {
             width: 90px;
             height: 125px;
@@ -133,7 +254,6 @@
             transform-style: preserve-3d;
         }
 
-        /* 我方主戰位 (Player Active) */
         .player-active-slot {
             width: 100px;
             height: 140px;
@@ -146,17 +266,19 @@
             align-items: center;
             justify-content: space-around;
             font-size: 11px;
-            transform: translateZ(30px); /* 3D 浮空高度 */
+            transform: translateZ(30px);
             position: relative;
             transform-style: preserve-3d;
+            cursor: pointer;
         }
 
-        /* 我方備戰區 (Player Bench Slots) */
         .player-bench-row {
             display: flex;
             gap: 10px;
             justify-content: center;
             transform: translateZ(15px);
+            width: 100%;
+            min-height: 75px;
         }
 
         .player-bench-card {
@@ -178,12 +300,11 @@
             position: relative;
         }
 
-        .player-bench-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            border-color: #fff;
+        .player-bench-card.active-target {
+            border-color: #ffd700;
+            box-shadow: 0 0 12px #ffd700;
         }
 
-        /* HP 條樣式 */
         .hp-badge {
             font-size: 8px;
             font-weight: bold;
@@ -192,11 +313,29 @@
             border-radius: 4px;
         }
 
-        /* ==================== 💥 受擊金色光圈暴擊 (Hit Splash VFX) ==================== */
+        /* 能量小徽章，附加在主力卡牌右上角 */
+        .energy-badge {
+            position: absolute;
+            top: 5px; right: 5px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: #ffeb3b;
+            color: #120524;
+            font-size: 9px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #fff;
+            box-shadow: 0 0 5px #ffeb3b;
+            transform: translateZ(10px);
+        }
+
+        /* ==================== 💥 金色光圈羽化暴擊受擊 (Hit Splash VFX) ==================== */
         .hit-splash-container {
             position: absolute;
             top: 50%; left: 50%;
-            transform: translate(-50%, -50%) translateZ(60px); /* 3D 頂層爆發 */
+            transform: translate(-50%, -50%) translateZ(60px);
             width: 100%;
             height: 100%;
             pointer-events: none;
@@ -239,35 +378,33 @@
             100% { transform: scale(1.0); }
         }
 
-        /* ==================== ⚡ 右下角星源能量充能鈕 (Energy Bolt) ==================== */
+        /* ⚡ 右下角充能按鈕 */
         .energy-generator {
             position: absolute;
             bottom: 120px; right: 15px;
-            width: 50px; height: 50px;
+            width: 48px; height: 48px;
             border-radius: 50%;
             background: radial-gradient(circle, #ffeb3b 30%, #f57f17 100%);
-            border: 3px solid #fff;
-            box-shadow: 0 0 20px #ffeb3b;
+            border: 2.5px solid #fff;
+            box-shadow: 0 0 15px #ffeb3b;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 22px;
             cursor: pointer;
             z-index: 20;
             transition: transform 0.2s;
         }
 
-        .energy-generator:hover { transform: scale(1.1); }
-
-        /* ==================== 🃏 底部手牌區 ==================== */
+        /* 🃏 底部手牌 */
         .hand-fanned-zone {
             position: relative;
             width: 100%;
-            height: 100px;
+            height: 90px;
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            margin-top: 10px;
+            margin-top: 5px;
             z-index: 20;
         }
 
@@ -294,27 +431,27 @@
             transform-origin: bottom center;
         }
 
-        /* 💡 限制定位 */
-        .hand-card-tcg:nth-child(1) { transform: rotate(-15deg) translateX(-60px); }
-        .hand-card-tcg:nth-child(2) { transform: rotate(-5deg) translateX(-20px); }
-        .hand-card-tcg:nth-child(3) { transform: rotate(5deg) translateX(20px); }
-        .hand-card-tcg:nth-child(4) { transform: rotate(15deg) translateX(60px); }
+        /* 扇形定位 */
+        .hand-card-tcg:nth-child(1) { transform: rotate(-15deg) translateX(-70px); }
+        .hand-card-tcg:nth-child(2) { transform: rotate(-5deg) translateX(-25px); }
+        .hand-card-tcg:nth-child(3) { transform: rotate(5deg) translateX(25px); }
+        .hand-card-tcg:nth-child(4) { transform: rotate(15deg) translateX(70px); }
 
         .hand-card-tcg:hover {
-            transform: scale(1.25) translateY(-20px) rotate(0deg);
+            transform: scale(1.3) translateY(-25px) rotate(0deg);
             z-index: 50;
             border-color: #00ffcc;
             box-shadow: 0 10px 25px rgba(0,255,204,0.5);
         }
 
-        /* ==================== 🔬 答題與充能面板 ==================== */
+        /* 🔬 控制台 */
         .control-quiz-overlay {
             background: rgba(8, 6, 26, 0.95);
             border: 2px solid #00ffcc;
             border-radius: 12px;
             padding: 12px;
             box-shadow: 0 0 20px rgba(0,255,204,0.3);
-            margin-top: 10px;
+            margin-top: 5px;
             z-index: 30;
         }
 
@@ -326,10 +463,11 @@
         }
 
         .quiz-body {
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.4;
             color: #e2d9f3;
             margin-bottom: 8px;
+            min-height: 32px;
         }
 
         .quiz-input-row {
@@ -364,30 +502,55 @@
 <body>
 
 <div class="phone-container">
+    <!-- Setup Mode Lobby (選擇 AI 還是 聯網對決) -->
+    <div class="setup-overlay" id="setupOverlay">
+        <div class="setup-box">
+            <div class="setup-title">🌌 選擇城堡決鬥模式</div>
+            <button class="btn-mode primary" onclick="startAIMode()">🤖 城堡單人 AI 練習</button>
+            <button class="btn-mode secondary" onclick="showRoomForm()">🌐 皇家聯網對決 (密碼房)</button>
+            
+            <div class="room-inputs" id="roomInputs">
+                <input type="text" id="roomIdInput" placeholder="請輸入 4 位房號 (例如: 1234)">
+                <input type="password" id="roomPassInput" placeholder="請輸入進入密碼">
+                <button class="btn-mode primary" onclick="connectOnlineRoom()">創建 / 加入房間</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🪙 3D 金幣拋擲 -->
+    <div class="coin-toss-overlay" id="coinOverlay">
+        <div style="color:#ffd700; font-size:18px; font-weight:bold; margin-bottom:40px; text-shadow:0 0 10px #ffd700;">★ 投星源幣決定先後次序 ★</div>
+        <div class="coin-3d" id="coin">?</div>
+        <div style="color:#fff; font-size:14px; margin-top:40px;" id="coinResultText">星儀翻轉中...</div>
+    </div>
+
     <!-- 頂部狀態欄 -->
     <div class="navbar-status">
-        <span>⚔️ 概率 TCG 決鬥場</span>
+        <span>🏆 剩餘生命：<span id="playerLives">3</span> vs 敵 <span id="oppLives">3</span></span>
         <span>💎 寶石：<span id="gemCount">0</span></span>
     </div>
 
     <!-- 3D 戰場盤面 -->
     <div class="battlefield-3d">
+        <!-- 敵先手提示 Banner -->
+        <div class="turn-banner" id="turnBanner">第 1 回合</div>
+
         <!-- 🔴 敵方半場 (Opponent Field) -->
         <div class="opponent-zone">
             <!-- 敵方後排 (Bench) -->
             <div class="opp-bench-row">
                 <div class="mini-bench-card" id="oppBench0">
                     <span>🦉 鴞</span>
-                    <span class="hp-badge">HP: <span id="oppBenchHP0">50</span></span>
-                    <!-- 受擊閃光 -->
+                    <span class="hp-badge">HP: <span id="oppBenchHP0">90</span></span>
+                    <!-- 後備受擊 50 濺射 -->
                     <div class="hit-splash-container" id="oppBenchSplat0">
                         <div class="hit-circle-pulse"></div>
                         <div class="hit-damage-text">50</div>
                     </div>
                 </div>
                 <div class="mini-bench-card" id="oppBench1">
-                    <span>🐻 熊</span>
-                    <span class="hp-badge">HP: <span id="oppBenchHP1">50</span></span>
+                    <span>🔱 戟</span>
+                    <span class="hp-badge">HP: <span id="oppBenchHP1">80</span></span>
                     <div class="hit-splash-container" id="oppBenchSplat1">
                         <div class="hit-circle-pulse"></div>
                         <div class="hit-damage-text">50</div>
@@ -397,11 +560,12 @@
 
             <!-- 敵方前排主力 (Active) -->
             <div class="opp-active-slot" id="oppActive">
-                <div style="font-weight:bold; color:#ff4d4d;">混沌獸 EX</div>
-                <div style="font-size:32px;">👿</div>
-                <span class="hp-badge">HP: <span id="oppActiveHP">110</span>/300</span>
+                <div style="font-weight:bold; color:#ff4d4d;" id="enemyName">混沌獸 EX</div>
+                <div style="font-size:32px;" id="enemyEmoji">👿</div>
+                <span class="hp-badge">HP: <span id="oppActiveHP">300</span>/300</span>
+                <div class="energy-badge" id="enemyEnergyBadge" style="display:none; background:#ff4d4d; color:#fff;">0</div>
                 
-                <!-- 敵方主力爆血 110 -->
+                <!-- 敵主力受擊 110 金色光圈 -->
                 <div class="hit-splash-container" id="oppActiveSplat">
                     <div class="hit-circle-pulse"></div>
                     <div class="hit-damage-text">110</div>
@@ -414,12 +578,13 @@
 
         <!-- 🟢 我方半場 (Player Field) -->
         <div class="player-zone">
-            <!-- 我方前排主力 (Active) -->
-            <div class="player-active-slot" id="playerActive">
+            <!-- 我方前排主力 (Active - 還原圖 2) -->
+            <div class="player-active-slot" id="playerActive" onclick="handleActiveClick()">
                 <div style="font-weight:bold; color:#00ffcc;" id="playerActiveName">主戰英靈</div>
                 <div style="font-size:36px;" id="playerActiveEmoji">❔</div>
                 <span class="hp-badge" id="playerActiveHPBox" style="display:none;">HP: <span id="playerActiveHP">120</span>/120</span>
-                <span style="font-size:8px; color:#ccc;" id="playerActiveSkill">請從後備派遣出戰</span>
+                <div class="energy-badge" id="playerEnergyBadge" style="display:none;">0</div>
+                <span style="font-size:8px; color:#ccc;" id="playerActiveSkill">請派遣備戰英靈上陣</span>
             </div>
 
             <!-- 我方後排備戰 (Bench) -->
@@ -427,43 +592,98 @@
         </div>
     </div>
 
-    <!-- 🃏 底部手牌區 -->
+    <!-- 🃏 底部手牌 -->
     <div class="hand-fanned-zone" id="playerHand">
-        <div class="hand-card-tcg" onclick="playHand(0)">
-            <span>人物 EX</span>
-            <span style="font-size:16px;">🧙‍♂️</span>
-            <span>高斯 EX</span>
-        </div>
-        <div class="hand-card-tcg" onclick="playHand(1)">
-            <span>神獸 Pet</span>
-            <span style="font-size:16px;">🦉</span>
-            <span>阿基米德鴞</span>
-        </div>
-        <div class="hand-card-tcg" onclick="playHand(2)">
-            <span>加成卡</span>
-            <span style="font-size:16px;">🔱</span>
-            <span>三叉戟</span>
-        </div>
-        <div class="hand-card-tcg" onclick="playHand(3)">
-            <span>人物 EX</span>
-            <span style="font-size:16px;">🔮</span>
-            <span>費馬 EX</span>
-        </div>
+        <!-- 4張手牌 -->
     </div>
 
-    <!-- 🔬 答題充能控制台 -->
+    <!-- 🔬 控制台 -->
     <div class="control-quiz-overlay">
-        <div class="quiz-title" id="quizTitle">★ 點擊右下角 [⚡] 進行星源充能</div>
-        <div class="quiz-body" id="quizBody">派遣你手牌或後備區 of your deck to the active slot to start!</div>
+        <div class="quiz-title" id="quizTitle">★ 請先選擇遊戲模式</div>
+        <div class="quiz-body" id="quizBody">正在等待大廳指令傳送...</div>
         <div class="quiz-input-row">
             <input type="number" step="0.1" id="quizInput" placeholder="輸入算術數值">
-            <button class="btn-launch-ptcg" onclick="submitQuizAction()">發動必殺</button>
+            <button class="btn-launch-ptcg" onclick="submitQuizAction()">發動決鬥</button>
         </div>
         <div id="duelFeedback" style="margin-top:6px; font-size:10px; font-weight:bold; text-align:center; min-height:14px;"></div>
     </div>
 </div>
 
 <script>
+    // ========================================================
+    // 🔊 1. Web Audio API 手遊級內建音效合成器 (100% 免外部 404 故障)
+    // ========================================================
+    const SoundEngine = {
+        ctx: null,
+        init() {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        },
+        play(type) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            let now = this.ctx.currentTime;
+
+            if (type === 'coin') {
+                // 金幣旋轉：高頻叮叮聲
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            } 
+            else if (type === 'draw') {
+                // 抽牌：高頻風吹聲
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
+            }
+            else if (type === 'charge') {
+                // 充能：能量上升
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(900, now + 0.6);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now); osc.stop(now + 0.6);
+            }
+            else if (type === 'hit') {
+                // 擊中暴擊：低音爆炸 + 碎裂
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.5);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now); osc.stop(now + 0.6);
+            }
+            else if (type === 'win') {
+                // 勝利大和弦
+                let chords = [523.25, 659.25, 783.99, 1046.50]; // C大和弦
+                chords.forEach((freq, idx) => {
+                    let o = this.ctx.createOscillator();
+                    let g = this.ctx.createGain();
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    g.gain.setValueAtTime(0.2, now + idx * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+                    o.start(now + idx * 0.1); o.stop(now + 1.5);
+                });
+            }
+        }
+    };
+
+    // ==========================================
+    // 2. Supabase 皇家連線配置與本地安全檢測
+    // ==========================================
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
 
@@ -476,207 +696,530 @@
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
     let gems = 0;
-    let unlockedCards = [];
-    let currentDeck = [];
-    let currentActiveIndex = -1;
 
-    let oppActiveHP = 110;
-    let oppBenchHP0 = 50;
-    let oppBenchHP1 = 50;
+    // TCG 完整卡組數據庫
+    const fullCardStats = {
+        '雷鳴精算師 · 高斯': { name: '雷鳴精算師 · 高斯', emoji: '🧙‍♂️', hp: 120, skill: '常態修正', type: '人物角色', attackDmg: 110 },
+        '時空編織者 · 費馬': { name: '時空編織者 · 費馬', emoji: '🔮', hp: 130, skill: '概率路徑', type: '人物角色', attackDmg: 100 },
+        '幻影刺客 · 貝葉斯': { name: '幻影刺客 · 貝葉斯', emoji: '🗡️', hp: 120, skill: '條件神罰', type: '人物角色', attackDmg: 120 },
+        '阿基米德鴞': { name: '阿基米德鴞', emoji: '🦉', hp: 90, skill: '窮竭守護', type: '寵物', attackDmg: 50 },
+        '卡爾丹熊': { name: '卡爾丹熊', emoji: '🐻', hp: 100, skill: '大數幸運', type: '寵物', attackDmg: 40 },
+        '帕斯卡三叉戟': { name: '帕斯卡三叉戟', emoji: '🔱', hp: 80, skill: '三角聯攜', type: '武器卡', attackDmg: 60 },
+        '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡', attackDmg: 40 }
+    };
+
+    // ==========================================
+    // 3. TCG 實時決鬥核心狀態機
+    // ==========================================
+    let gameState = {
+        mode: 'AI', // 'AI' or 'ONLINE'
+        onlineChannel: null,
+        myRole: 'P1', // 在聯網房中是 P1 還是 P2
+        turnNumber: 1,
+        activeTurn: 'PLAYER', // 'PLAYER' or 'OPPONENT'
+        playerLives: 3,
+        oppLives: 3,
+        
+        // 卡組與戰場
+        myDeck: [],
+        myHand: [],
+        myBench: [],
+        myActiveCard: null,
+        myActiveHP: 0,
+        myActiveEnergy: 0,
+
+        // 敵方卡組與戰場
+        oppActiveCard: null,
+        oppActiveHP: 300,
+        oppActiveEnergy: 0,
+        oppBench: [
+            { name: '阿基米德鴞', hp: 90 },
+            { name: '帕斯卡三叉戟', hp: 80 }
+        ]
+    };
 
     let currentQuizAns = 0;
     let currentTopic = '';
-    let actionType = ''; // 'ATTACK' or 'CHARGE'
+    let currentAction = 'ATTACK'; // 'ATTACK', 'CHARGE'
 
-    const fullCardStats = {
-        '雷鳴精算師 · 高斯': { name: '雷鳴精算師 · 高斯', emoji: '🧙‍♂️', hp: 120, skill: '常態修正', type: '人物角色' },
-        '時空編織者 · 費馬': { name: '時空編織者 · 費馬', emoji: '🔮', hp: 130, skill: '概率路徑', type: '人物角色' },
-        '幻影刺客 · 貝葉斯': { name: '幻影刺客 · 貝葉斯', emoji: '🗡️', hp: 120, skill: '條件神罰', type: '人物角色' },
-        '阿基米德鴞': { name: '阿基米德鴞', emoji: '🦉', hp: 90, skill: '窮竭守護', type: '寵物' },
-        '卡爾丹熊': { name: '卡爾丹熊', emoji: '🐻', hp: 100, skill: '大數幸運', type: '寵物' },
-        '帕斯卡三叉戟': { name: '帕斯卡三叉戟', emoji: '🔱', hp: 80, skill: '三角聯攜', type: '武器卡' },
-        '貝葉斯羅盤': { name: '貝葉斯羅盤', emoji: '🧭', hp: 80, skill: '條件羅盤', type: '武器卡' }
-    };
+    // ==========================================
+    // 4. 大廳選擇 & 聯網密碼房
+    // ==========================================
+    function showRoomForm() {
+        document.getElementById('roomInputs').style.display = 'block';
+    }
 
-    const duelQuizPool = [
-        {
-            type: 'Expected_Value',
-            gen: () => {
-                let dmg = Math.floor(Math.random() * 2) * 50 + 150;
-                let p = Math.floor(Math.random() * 3) * 10 + 50;
-                return {
-                    text: `計算高斯 EX 技能期望傷害：若發動有 ${p}% 機率造成 ${dmg} 點傷害，其餘機率 0。其【期望傷害值】為多少？`,
-                    ans: dmg * (p / 100)
-                };
-            }
-        },
-        {
-            type: 'Conditional_Probability',
-            gen: () => {
-                let p = Math.floor(Math.random() * 2) * 10 + 70;
-                let dec = p / 100;
-                return {
-                    text: `已知敵方被標記，貝葉斯 EX 單次暴擊率提升至 ${p}%。在此條件下，你連續【兩次必殺技都暴擊】的概率是多少%？(保留1位小數)`,
-                    ans: parseFloat((dec * dec * 100).toFixed(1))
-                };
-            }
-        }
-    ];
+    function startAIMode() {
+        gameState.mode = 'AI';
+        document.getElementById('setupOverlay').style.display = 'none';
+        triggerCoinToss();
+    }
 
-    async function initBattle() {
-        if (!studentId) {
-            alert('請先登入！');
-            window.location.href = 'index.html';
+    async function connectOnlineRoom() {
+        const roomId = document.getElementById('roomIdInput').value.trim();
+        const password = document.getElementById('roomPassInput').value.trim();
+
+        if (roomId.length !== 4 || !password) {
+            alert('⚠️ 請輸入 4 位數房號與房間密碼！');
             return;
         }
 
+        if (isLocalMode) {
+            alert('⚠️ 目前為本地測試模式，不支援聯網對戰，系統將為您自動啟動 AI 模式！');
+            startAIMode();
+            return;
+        }
+
+        document.getElementById('setupOverlay').style.display = 'none';
+        
+        // 初始化 Supabase 頻道廣播
+        gameState.mode = 'ONLINE';
+        gameState.onlineChannel = supabaseClient.channel(`room_${roomId}`, {
+            config: { broadcast: { self: true } }
+        });
+
+        // 訂閱事件進行實時對決狀態同步
+        gameState.onlineChannel
+            .on('broadcast', { event: 'state_sync' }, (payload) => {
+                handleStateSync(payload.payload);
+            })
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    // P2 角色加入，開始拋硬幣
+                    gameState.onlineChannel.send({
+                        type: 'broadcast',
+                        event: 'state_sync',
+                        payload: { action: 'JOIN', sender: studentName }
+                    });
+                }
+            });
+
+        triggerCoinToss();
+    }
+
+    // ==========================================
+    // 🪙 5. 3D 金幣拋擲動畫
+    // ==========================================
+    function triggerCoinToss() {
+        SoundEngine.play('coin');
+        const overlay = document.getElementById('coinOverlay');
+        const coin = document.getElementById('coin');
+        const text = document.getElementById('coinResultText');
+        overlay.style.display = 'flex';
+
+        // 3D 旋轉 1080 度
+        let isHeads = Math.random() < 0.5;
+        let rotation = isHeads ? 1080 : 1260; // 1080度為正面，1260度為反面
+
+        setTimeout(() => {
+            coin.style.transform = `rotateY(${rotation}deg)`;
+        }, 100);
+
+        setTimeout(() => {
+            if (isHeads) {
+                coin.innerText = '先';
+                text.innerText = '🔮 恭喜獲得先手攻勢！';
+                gameState.activeTurn = 'PLAYER';
+            } else {
+                coin.innerText = '後';
+                text.innerText = '👿 敵方皇家英靈獲得先手！';
+                gameState.activeTurn = 'OPPONENT';
+            }
+        }, 1500);
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            startMatch();
+        }, 3000);
+    }
+
+    // ==========================================
+    // ⚔️ 6. 遊戲開始與抽手牌 (PTCG 起手)
+    // ==========================================
+    async function startMatch() {
+        // 從雲端或本地加載寶石
         if (isLocalMode) {
             let users = JSON.parse(localStorage.getItem('local_users') || '{}');
             let user = users[studentName];
             if (user) {
                 gems = user.gems;
-                currentDeck = user.current_deck || [];
+                gameState.myDeck = user.current_deck || [];
             }
         } else {
             const { data } = await supabaseClient.from('student_progress').select('*').eq('student_id', studentId).single();
             if (data) {
                 gems = data.gems;
-                currentDeck = data.current_deck || [];
+                gameState.myDeck = data.current_deck || [];
+            }
+        }
+        document.getElementById('gemCount').innerText = gems;
+
+        // 如果卡組不足 4 張，用 EX 初始英靈填滿手牌
+        if (gameState.myDeck.length < 3) {
+            gameState.myDeck = ['雷鳴精算師 · 高斯', '阿基米德鴞', '帕斯卡三叉戟', '時空編織者 · 費馬'];
+        }
+
+        // 起手抽取 4 張卡牌
+        for (let i = 0; i < 4; i++) {
+            if (gameState.myDeck[i]) {
+                gameState.myHand.push(gameState.myDeck[i]);
             }
         }
 
-        document.getElementById('gemCount').innerText = gems;
+        renderHand();
+        showTurnBanner();
+    }
+
+    function renderHand() {
+        SoundEngine.play('draw');
+        const handContainer = document.getElementById('playerHand');
+        handContainer.innerHTML = '';
+
+        gameState.myHand.forEach((cardName, idx) => {
+            const card = fullCardStats[cardName];
+            if (!card) return;
+
+            const hCard = document.createElement('div');
+            hCard.className = 'hand-card-tcg';
+            hCard.innerHTML = `
+                <span>${card.type}</span>
+                <span style="font-size:16px;">${card.emoji}</span>
+                <span>${card.name.substring(0, 3)}</span>
+            `;
+            hCard.onclick = () => playCardFromHand(idx);
+            handContainer.appendChild(hCard);
+        });
+    }
+
+    // ==========================================
+    // 🃏 7. 手牌部署至備戰席（Play to Bench）
+    // ==========================================
+    function playCardFromHand(index) {
+        if (gameState.activeTurn !== 'PLAYER') {
+            alert('⚠️ 目前是敵方回合，無法部署卡牌！');
+            return;
+        }
+
+        if (gameState.myBench.length >= 3) {
+            alert('⚠️ 備戰席（Bench）最多只能放置 3 張後備卡牌！');
+            return;
+        }
+
+        const cardName = gameState.myHand[index];
+        gameState.myBench.push(cardName);
+        gameState.myHand.splice(index, 1);
+
+        renderHand();
         renderBench();
     }
 
     function renderBench() {
         const benchContainer = document.getElementById('playerBench');
         benchContainer.innerHTML = '';
-        for (let i = 0; i < currentDeck.length; i++) {
-            const cardName = currentDeck[i];
-            const card = fullCardStats[cardName];
-            if (!card) continue;
 
+        gameState.myBench.forEach((cardName, idx) => {
+            const card = fullCardStats[cardName];
             const bCard = document.createElement('div');
             bCard.className = 'player-bench-card';
             bCard.innerHTML = `
                 <span>${card.emoji}</span>
                 <span class="hp-badge">HP: ${card.hp}</span>
             `;
-            bCard.onclick = () => deployToActive(i);
+            bCard.onclick = () => deployBenchToActive(idx);
             benchContainer.appendChild(bCard);
-        }
+        });
     }
 
-    function deployToActive(index) {
-        currentActiveIndex = index;
-        const cardName = currentDeck[index];
+    // ==========================================
+    // 🔄 8. 主主力卡牌上陣 / 撤退機制 (Active Swap)
+    // ==========================================
+    function deployBenchToActive(index) {
+        if (gameState.activeTurn !== 'PLAYER') {
+            alert('⚠️ 目前是敵方回合，無法調動主力卡！');
+            return;
+        }
+
+        const cardName = gameState.myBench[index];
         const card = fullCardStats[cardName];
 
-        document.getElementById('playerActiveName').innerText = card.name;
-        document.getElementById('playerActiveEmoji').innerText = card.emoji;
-        document.getElementById('playerActiveHPBox').style.display = 'block';
-        document.getElementById('playerActiveHP').innerText = card.hp;
-        document.getElementById('playerActiveSkill').innerText = `必殺技：${card.skill} (${card.type})`;
+        if (!gameState.myActiveCard) {
+            // A. 主戰位空缺：直接上陣
+            gameState.myActiveCard = cardName;
+            gameState.myActiveHP = card.hp;
+            gameState.myActiveEnergy = 0;
+            gameState.myBench.splice(index, 1);
+        } else {
+            // B. 主戰位已有卡牌：發動「撤退（Retreat）」，需要消耗 1 能量進行輪換
+            if (gameState.myActiveEnergy < 1) {
+                alert('⚠️ 撤退需要消耗 1 點星源能量！請先為主力卡充能。');
+                return;
+            }
+            gameState.myActiveEnergy -= 1;
+            
+            // 進行主力與後備對調
+            let oldActive = gameState.myActiveCard;
+            gameState.myActiveCard = cardName;
+            gameState.myActiveHP = card.hp;
+            
+            gameState.myBench[index] = oldActive;
+        }
 
+        updateActiveUI();
+        renderBench();
         nextQuizRound();
     }
 
+    function updateActiveUI() {
+        if (gameState.myActiveCard) {
+            const card = fullCardStats[gameState.myActiveCard];
+            document.getElementById('playerActiveName').innerText = card.name;
+            document.getElementById('playerActiveEmoji').innerText = card.emoji;
+            document.getElementById('playerActiveHPBox').style.display = 'block';
+            document.getElementById('playerActiveHP').innerText = gameState.myActiveHP;
+            document.getElementById('playerActiveSkill').innerText = `必殺：${card.skill} (${card.attackDmg} 傷)`;
+            
+            const badge = document.getElementById('playerEnergyBadge');
+            badge.style.display = 'flex';
+            badge.innerText = gameState.myActiveEnergy;
+        } else {
+            document.getElementById('playerActiveName').innerText = '主戰英靈';
+            document.getElementById('playerActiveEmoji').innerText = '❔';
+            document.getElementById('playerActiveHPBox').style.display = 'none';
+            document.getElementById('playerEnergyBadge').style.display = 'none';
+            document.getElementById('playerActiveSkill').innerText = '請派遣備戰英靈上陣';
+        }
+    }
+
+    // ==========================================
+    // ⚡ 9. 星源充能 (Energy Attach)
+    // ==========================================
     function triggerEnergyCharge() {
-        actionType = 'CHARGE';
-        document.getElementById('quizTitle').innerText = '⚡ 星源充能：口算爆速 Gate';
-        
-        let p = Math.floor(Math.random() * 2) * 10 + 40; 
+        if (gameState.activeTurn !== 'PLAYER') {
+            alert('⚠️ 目前是敵方回合，無法進行能量充能！');
+            return;
+        }
+
+        if (!gameState.myActiveCard) {
+            alert('⚠️ 戰場上沒有主力卡！請先派遣英靈上陣。');
+            return;
+        }
+
+        currentAction = 'CHARGE';
+        SoundEngine.play('charge');
+        document.getElementById('quizTitle').innerText = '⚡ 星源能量加載：秒速口算Gate';
+
+        let p = Math.floor(Math.random() * 2) * 10 + 40; // 40% or 50%
         let dec = p / 100;
-        currentQuizAns = parseFloat((dec * 2 * 100).toFixed(0)); 
-        
-        document.getElementById('quizBody').innerText = `「擲一魔法硬幣，單次正面率為 ${p}%。連續拋擲兩次，【至少有一次正面】的概率是多少%？」(口算整數)`;
+        currentQuizAns = parseFloat((dec * 2 * 100).toFixed(0));
+
+        document.getElementById('quizBody').innerText = `「拋擲一枚魔法金幣，正面機率為 ${p}%。連續拋擲兩次，【兩次都正面】的概率是多少%？」(口算填寫整數)`;
         document.getElementById('quizInput').value = '';
     }
 
-    function nextQuizRound() {
-        actionType = 'ATTACK';
-        const qTemplate = duelQuizPool[Math.floor(Math.random() * duelQuizPool.length)];
-        const q = qTemplate.gen();
-        currentQuizAns = q.ans;
-        currentTopic = qTemplate.type;
+    // ==========================================
+    // 🔥 10. DSE 概率必殺攻擊 & 金色爆血動畫
+    // ==========================================
+    const quizPool = [
+        {
+            text: "發動高斯 EX 期望雷擊：若其技能有 60% 機率造成 200 點暴擊傷害，其餘機率造成 0。請精算此必殺技的【期望傷害】為多少點？",
+            ans: 120
+        },
+        {
+            text: "貝葉斯 EX 狀態連攜：已知敵方處於「潮濕狀態」，單次天雷爆擊率為 80%。在此已知條件下，你【連續兩次攻擊都暴擊】的概率是多少%？(填寫保留1位小數)",
+            ans: 64
+        }
+    ];
 
-        document.getElementById('quizTitle').innerText = '🔥 發動 DSE 必殺連擊';
-        document.getElementById('quizBody').innerText = q.text;
+    function nextQuizRound() {
+        if (!gameState.myActiveCard) return;
+        
+        currentAction = 'ATTACK';
+        let quiz = quizPool[Math.floor(Math.random() * quizPool.length)];
+        currentQuizAns = quiz.ans;
+
+        document.getElementById('quizTitle').innerText = `🔥 必殺技充能中 (需要 1 能量)`;
+        document.getElementById('quizBody').innerText = quiz.text;
         document.getElementById('quizInput').value = '';
     }
 
     async function submitQuizAction() {
         const val = parseFloat(document.getElementById('quizInput').value);
         const fb = document.getElementById('duelFeedback');
+
         if (isNaN(val)) { fb.innerText = '⚠️ 請輸入解！'; return; }
 
         let isCorrect = Math.abs(val - currentQuizAns) <= 0.2;
 
         if (isCorrect) {
-            if (actionType === 'CHARGE') {
-                fb.innerText = '⚡【充能成功！】星源附著成功，主戰英靈攻擊力增加 20 點！';
+            if (currentAction === 'CHARGE') {
+                gameState.myActiveEnergy += 1;
+                fb.innerText = '⚡【充能成功！】能量依附完畢！主力技能已激活！';
                 fb.style.color = '#00ffcc';
+                updateActiveUI();
                 setTimeout(nextQuizRound, 2000);
             } else {
+                // 必殺攻擊
+                if (gameState.myActiveEnergy < 1) {
+                    alert('⚠️ 必殺技能量不足！請先點擊右側 [⚡] 進行充能。');
+                    return;
+                }
+                gameState.myActiveEnergy -= 1;
+                updateActiveUI();
+
+                // 💥 實施與圖片 100% 一致的金色光圈爆血動畫
                 triggerCombatSplashes();
             }
         } else {
-            fb.innerText = `❌ 計算錯誤！受到城堡大陣反噬 40 傷害！（正確答案是 ${currentQuizAns}）`;
+            fb.innerText = `❌ 計算錯誤！防禦結界反噬，主力受到 40 傷害！（正確答案為 ${currentQuizAns}）`;
             fb.style.color = '#ff4d4d';
+            gameState.myActiveHP -= 40;
+            if (gameState.myActiveHP <= 0) {
+                handleCardDefeated('PLAYER');
+            }
+            updateActiveUI();
         }
     }
 
     function triggerCombatSplashes() {
-        const splatActive = document.getElementById('oppActiveSplat');
-        splatActive.style.display = 'flex';
-        oppActiveHP -= 110;
-        if (oppActiveHP < 0) oppActiveHP = 0;
-        document.getElementById('oppActiveHP').innerText = oppActiveHP;
+        SoundEngine.play('hit');
+        // 1. 敵主力受擊 110
+        const oppSplat = document.getElementById('oppActiveSplat');
+        oppSplat.style.display = 'flex';
+        gameState.oppActiveHP -= 110;
+        if (gameState.oppActiveHP < 0) gameState.oppActiveHP = 0;
+        document.getElementById('oppActiveHP').innerText = gameState.oppActiveHP;
 
-        const splatBench0 = document.getElementById('oppBenchSplat0');
-        const splatBench1 = document.getElementById('oppBenchSplat1');
-        splatBench0.style.display = 'flex';
-        splatBench1.style.display = 'flex';
+        // 2. 敵後備受擊 50 濺射
+        const oppBenchSplat0 = document.getElementById('oppBenchSplat0');
+        const oppBenchSplat1 = document.getElementById('oppBenchSplat1');
+        oppBenchSplat0.style.display = 'flex';
+        oppBenchSplat1.style.display = 'flex';
 
-        oppBenchHP0 -= 50; if (oppBenchHP0 < 0) oppBenchHP0 = 0;
-        oppBenchHP1 -= 50; if (oppBenchHP1 < 0) oppBenchHP1 = 0;
+        gameState.oppBench[0].hp -= 50; if (gameState.oppBench[0].hp < 0) gameState.oppBench[0].hp = 0;
+        gameState.oppBench[1].hp -= 50; if (gameState.oppBench[1].hp < 0) gameState.oppBench[1].hp = 0;
 
-        document.getElementById('oppBenchHP0').innerText = oppBenchHP0;
-        document.getElementById('oppBenchHP1').innerText = oppBenchHP1;
+        document.getElementById('oppBenchHP0').innerText = gameState.oppBench[0].hp;
+        document.getElementById('oppBenchHP1').innerText = gameState.oppBench[1].hp;
 
         setTimeout(() => {
-            splatActive.style.display = 'none';
-            splatBench0.style.display = 'none';
-            splatBench1.style.display = 'none';
+            oppSplat.style.display = 'none';
+            oppBenchSplat0.style.display = 'none';
+            oppBenchSplat1.style.display = 'none';
+
+            // 檢查敵方死亡
+            checkOpponentDeaths();
             
-            if (oppActiveHP <= 0 && oppBenchHP0 <= 0 && oppBenchHP1 <= 0) {
-                triggerWin();
-            } else {
-                nextQuizRound();
-            }
-        }, 2500);
+            // 回合輪轉
+            endTurn();
+        }, 2000);
     }
 
-    async function triggerWin() {
-        alert('🎉【榮耀大捷！】你成功擊潰了混沌獸及其所有後備部隊！獲得 150 寶石！');
-        gems += 150;
-        document.getElementById('gemCount').innerText = gems;
+    // ==========================================
+    // 💀 11. 卡牌血量歸零 ➡️ 廢棄區 ➡️ 扣減生命值
+    // ==========================================
+    function checkOpponentDeaths() {
+        if (gameState.oppActiveHP <= 0) {
+            handleCardDefeated('OPPONENT');
+        }
+    }
 
-        if (isLocalMode) {
-            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
-            if (users[studentName]) {
-                users[studentName].gems = gems;
-                localStorage.setItem('local_users', JSON.stringify(users));
+    function handleCardDefeated(side) {
+        if (side === 'OPPONENT') {
+            alert('💀 敵方 EX 主力卡牌被擊潰，送入廢棄區！');
+            gameState.oppLives -= 1;
+            document.getElementById('oppLives').innerText = gameState.oppLives;
+
+            // 敵後備頂上
+            if (gameState.oppBench[0].hp > 0) {
+                gameState.oppActiveHP = gameState.oppBench[0].hp;
+                document.getElementById('enemyName').innerText = gameState.oppBench[0].name;
+                document.getElementById('oppActiveHP').innerText = gameState.oppActiveHP;
+                gameState.oppBench[0].hp = 0;
+                document.getElementById('oppBenchHP0').innerText = 0;
+            } else {
+                gameState.oppActiveHP = 0;
+                document.getElementById('oppActiveHP').innerText = 0;
+            }
+
+            if (gameState.oppLives <= 0) {
+                triggerGameOver('PLAYER_WIN');
             }
         } else {
-            await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+            alert('💀 我方主力英靈血量歸零，被送入廢棄區！');
+            gameState.playerLives -= 1;
+            document.getElementById('playerLives').innerText = gameState.playerLives;
+            gameState.myActiveCard = null;
+            updateActiveUI();
+
+            if (gameState.playerLives <= 0) {
+                triggerGameOver('OPPONENT_WIN');
+            }
         }
-        localStorage.setItem('cached_gems', gems);
+    }
+
+    // ==========================================
+    // 🔄 12. 回合結束與 Banner 提示
+    // ==========================================
+    function endTurn() {
+        gameState.activeTurn = 'OPPONENT';
+        showTurnBanner();
+
+        // 模擬 AI 對手出招
+        setTimeout(() => {
+            alert('👿 敵方回合：混沌獸 EX 對你發動引力咆哮，造成 30 點防線傷害！');
+            if (gameState.myActiveCard) {
+                gameState.myActiveHP -= 30;
+                if (gameState.myActiveHP <= 0) {
+                    handleCardDefeated('PLAYER');
+                }
+                updateActiveUI();
+            }
+            
+            // AI 回合結束，輪回玩家
+            gameState.activeTurn = 'PLAYER';
+            gameState.turnNumber += 1;
+            showTurnBanner();
+            nextQuizRound();
+        }, 2000);
+    }
+
+    function showTurnBanner() {
+        const banner = document.getElementById('turnBanner');
+        banner.style.display = 'block';
+        banner.innerText = gameState.activeTurn === 'PLAYER' ? `第 ${gameState.turnNumber} 回合 - 我方攻勢` : `第 ${gameState.turnNumber} 回合 - 敵方攻勢`;
+        setTimeout(() => {
+            banner.style.display = 'none';
+        }, 1500);
+    }
+
+    // ==========================================
+    // 🏆 13. 遊戲宣告結束
+    // ==========================================
+    async function triggerGameOver(result) {
+        if (result === 'PLAYER_WIN') {
+            SoundEngine.play('win');
+            alert(`🎉【決鬥封神！】恭喜 ${studentName} 贏得本次星儀爭霸賽！獲得 150 寶石獎勵！`);
+            gems += 150;
+            document.getElementById('gemCount').innerText = gems;
+            if (isLocalMode) {
+                let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+                if (users[studentName]) {
+                    users[studentName].gems = gems;
+                    localStorage.setItem('local_users', JSON.stringify(users));
+                }
+            } else {
+                await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+            }
+        } else {
+            alert('💀 戰線崩潰！皇家英靈不幸落敗，請整頓卡組，重新來過！');
+        }
         window.location.href = 'lobby.html';
     }
 
-    initBattle();
+    function handleLogout() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
 </script>
 </body>
 </html>
