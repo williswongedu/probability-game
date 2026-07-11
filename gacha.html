@@ -7,79 +7,99 @@
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --castle-shrine: url('https://images.unsplash.com/photo-1518005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop');
+        }
+
         body {
-            background: radial-gradient(circle at center, #1b0a3a 0%, #050212 100%);
+            background: #090514;
             color: #d1dbff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; box-sizing: border-box;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        .parallax-shrine-bg {
+            position: absolute;
+            top: -5%; left: -5%;
+            width: 110%; height: 110%;
+            background: var(--castle-shrine) center/cover no-repeat;
+            opacity: 0.15;
+            filter: blur(4px);
+            z-index: 1;
+            pointer-events: none;
         }
 
         h1 {
             color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
             margin: 10px 0;
-            font-size: 26px;
+            font-size: 28px;
+            text-align: center;
+            z-index: 10;
         }
 
-        /* 召喚核心區域 */
-        .gacha-stage {
-            display: flex;
-            gap: 40px;
-            max-width: 1000px;
+        .castle-backdrop {
             width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        /* 左側：神魔之塔石碑 */
-        .shrine-left {
-            flex: 1.2;
-            min-width: 340px;
+            max-width: 1000px;
             background: rgba(12, 6, 28, 0.9);
             border: 3px solid #e0c068;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 0 30px rgba(224, 192, 104, 0.15);
+            padding: 25px;
+            box-shadow: 0 0 40px rgba(157, 142, 255, 0.2);
+            box-sizing: border-box;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .summon-left {
+            flex: 1.2;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
         }
 
-        /* 右側：抽卡歷史圖鑑與返回大廳 */
-        .shrine-right {
+        .summon-right {
             flex: 0.8;
             min-width: 280px;
-            display: flex; flex-direction: column; gap: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        /* Plan B：法陣爆率加成面板 */
-        .lucky-booster-panel {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #5d4297;
+        .booster-box {
+            background: rgba(0, 0, 0, 0.65);
+            border: 2px solid #7c4dff;
             border-radius: 12px;
             padding: 15px;
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.3);
         }
 
         .booster-title {
             color: #00ffff;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             margin-bottom: 8px;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 8px #00ffff;
         }
 
         .booster-text {
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
+            color: #e2d9f3;
             margin-bottom: 12px;
+            min-height: 50px;
         }
 
         .booster-input-group {
@@ -89,281 +109,402 @@
 
         .booster-input-group input {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid #5d4297;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #fff;
             text-align: center;
+            font-size: 16px;
             font-weight: bold;
         }
 
         .btn-booster {
-            background: #5d4297;
-            color: #00ffff;
+            background: linear-gradient(135deg, #7c4dff 0%, #3f1fa3 100%);
+            color: #fff;
             border: 1px solid #00ffff;
-            padding: 8px 15px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            transition: transform 0.2s;
         }
 
-        /* 神魔之塔召喚石碑 (Summon Stone Pile) */
-        .summon-altar {
-            width: 200px;
-            height: 200px;
+        .btn-booster:hover { transform: scale(1.05); }
+
+        .altar-container {
+            width: 240px;
+            height: 240px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(93, 66, 151, 0.4) 0%, rgba(5, 2, 18, 0.8) 100%);
             border: 4px dashed #e0c068;
+            background: radial-gradient(circle, rgba(93, 66, 151, 0.4) 0%, rgba(5, 2, 18, 0.9) 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
             margin: 20px 0;
-            cursor: grab;
-            box-shadow: 0 0 20px rgba(224, 192, 104, 0.1);
+            box-shadow: 0 0 30px rgba(224, 192, 104, 0.15);
         }
 
-        /* 浮空的召喚石碑 */
         .summon-stone {
             width: 80px;
-            height: 110px;
-            background: linear-gradient(135deg, #4c3c8c 0%, #170d30 100%);
-            border: 2px solid #e0c068;
-            border-radius: 8px;
+            height: 120px;
+            background: linear-gradient(135deg, #e0c068 0%, #aa8210 100%);
+            border: 2px solid #fff;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 32px;
-            box-shadow: 0 0 20px rgba(157, 142, 255, 0.6);
+            font-size: 36px;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            cursor: grab;
             transition: transform 0.1s ease;
             position: absolute;
             user-select: none;
+            z-index: 10;
         }
 
-        /* 爆率提升時：法陣燃燒金光 */
-        .summon-altar.boosted {
-            border-color: #ffd700;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
-            animation: magic-pulse 2s infinite alternate;
+        .summon-stone:active { cursor: grabbing; }
+
+        .altar-container.boosted {
+            border-color: #00ffcc;
+            box-shadow: 0 0 45px rgba(0, 255, 204, 0.5);
+            animation: pulse-boost 2s infinite alternate;
         }
 
-        @keyframes magic-pulse {
+        @keyframes pulse-boost {
             0% { transform: scale(1); }
             100% { transform: scale(1.03); }
         }
 
-        /* 翻牌結果 TCG 閃卡效果 */
-        .gacha-result-overlay {
+        .reveal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 2, 18, 0.95);
+            background: rgba(5, 2, 18, 0.96);
             z-index: 100;
             display: none;
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            perspective: 1200px;
         }
 
-        /* 5星雷射閃卡 */
-        .holo-card {
-            width: 280px;
-            height: 390px;
-            border: 4px solid #ffd700;
+        .tcg-holo-card {
+            width: 300px;
+            height: 420px;
             border-radius: 16px;
-            background: radial-gradient(circle, #251240 0%, #080314 100%);
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 35px rgba(255, 215, 0, 0.6);
             transform-style: preserve-3d;
-            transition: transform 0.1s ease;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 35px rgba(0,0,0,0.8);
+            cursor: pointer;
         }
 
-        /* 雷射彩虹光 */
-        .holo-card::before {
-            content: '';
+        .card-back {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(125deg, rgba(255,0,0,0) 0%, rgba(255, 215, 0, 0.2) 30%, rgba(0,255,255,0.2) 50%, rgba(255,0,0,0) 100%);
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            background: linear-gradient(135deg, #1b0e35 0%, #050212 100%);
+            border: 4px solid #e0c068;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            color: #e0c068;
+            box-shadow: inset 0 0 20px rgba(224, 192, 104, 0.4);
+        }
+
+        .card-front {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            transform: rotateY(180deg);
+            border-radius: 16px;
+            border: 4px solid #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .holo-foil {
+            position: absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 30%, rgba(0,255,255,0.2) 50%, rgba(255,0,255,0.15) 70%, rgba(255,255,255,0) 100%);
+            background-size: 200% 200%;
             mix-blend-mode: color-dodge;
             z-index: 5;
             pointer-events: none;
+            transition: background-position 0.15s ease;
+        }
+
+        .card-character { background: radial-gradient(circle, #f7d547 0%, #b8860b 100%); border-color: #ffd700; }
+        .card-pet { background: radial-gradient(circle, #5ec3e5 0%, #104e8b 100%); border-color: #00bfff; }
+        .card-weapon { background: radial-gradient(circle, #ff6b6b 0%, #8b1a1a 100%); border-color: #ff3e3e; }
+
+        .card-header-tcg {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            transform: translateZ(25px);
+        }
+
+        .card-stars {
+            color: #ffd700;
+            font-size: 13px;
+            margin-top: 4px;
+            letter-spacing: 2px;
+            transform: translateZ(20px);
+        }
+
+        .card-illustration-tcg {
+            height: 180px;
+            border: 2px solid rgba(255,255,255,0.6);
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+            background: rgba(0,0,0,0.3);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            transform: translateZ(35px);
+        }
+
+        .card-info-tcg {
+            background: rgba(0, 0, 0, 0.75);
+            border: 1.5px solid #fff;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            flex-grow: 1;
+            transform: translateZ(15px);
         }
 
         .btn-confirm-gacha {
             margin-top: 30px;
-            padding: 12px 30px;
+            padding: 12px 35px;
             background: linear-gradient(135deg, #ffd700 0%, #aa8210 100%);
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
-        .btn-back-lobby {
+        .btn-back {
             background: transparent;
             border: 2px solid #5d4297;
             color: #d1dbff;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             text-align: center;
             text-decoration: none;
         }
 
-        .btn-back-lobby:hover {
-            background: rgba(93, 66, 151, 0.2);
-        }
+        .btn-back:hover { background: rgba(93, 66, 151, 0.2); }
     </style>
 </head>
 <body>
 
-<div style="display:flex; justify-content:space-between; width:100%; max-width:1000px; border-bottom: 1px solid rgba(224,192,104,0.3); padding-bottom:10px;">
-    <span style="font-weight:bold; color:#ffd700;">🔮 星導召喚神殿</span>
-    <span>💎 擁有寶石：<span id="gemCount">1000</span></span>
+<div class="parallax-shrine-bg" id="parallaxShrine"></div>
+
+<div style="display:flex; justify-content:space-between; width:100%; max-width:1000px; border-bottom:1px solid rgba(224,192,104,0.3); padding-bottom:10px; z-index: 10;">
+    <span style="font-weight:bold; color:#ffd700; font-size:18px;">🏰 星導召喚神殿</span>
+    <span>💎 擁有寶石：<span id="gemCount">0</span></span>
 </div>
 
-<div class="gacha-stage">
-    <!-- 左側：召喚主體 -->
-    <div class="shrine-left">
-        <!-- Plan B: 爆率提升謎題 -->
-        <div class="lucky-booster-panel">
-            <div class="booster-title">✨ 星導召喚儀式：解開法陣鎖鑰</div>
-            <div class="booster-text" id="boosterQuest">正在從迷霧中凝聚謎題...</div>
+<div class="castle-backdrop">
+    <div class="summon-left">
+        <div class="booster-box">
+            <div class="booster-title">⚡ 召喚星儀：注入概率加成能量</div>
+            <div class="booster-text" id="boosterQuest">正在從城堡深處凝聚謎題...</div>
             <div class="booster-input-group">
-                <input type="number" step="0.1" id="boosterInput" placeholder="輸入概率值 (例如: 19.5)">
+                <input type="number" step="0.01" id="boosterInput" placeholder="輸入概率值 %">
                 <button class="btn-booster" onclick="checkBooster()">注入魔力</button>
             </div>
-            <div id="boosterFeedback" style="margin-top:8px; font-size:12px; font-weight:bold;"></div>
+            <div id="boosterFeedback" style="margin-top:8px; font-size:13px; font-weight:bold;"></div>
         </div>
 
         <div style="text-align:center; font-size:14px; color:#aaa; margin-bottom:10px;">
-            【拖曳下拉石碑至法陣底部進行召喚】
+            【拖曳下拉星導石碑至法陣底部進行召喚】
         </div>
 
-        <!-- 召喚法陣與可拖拽石碑 -->
-        <div class="summon-altar" id="altar">
-            <div class="summon-stone" id="stone">💎</div>
+        <div class="altar-container" id="altar">
+            <div class="summon-stone" id="stone">🔮</div>
         </div>
 
         <div style="font-size:12px; color:#6da2ff; margin-top:10px;">每次召喚消耗 100 寶石</div>
     </div>
 
-    <!-- 右側：返回城堡 -->
-    <div class="shrine-right">
-        <div style="background: rgba(0,0,0,0.4); border: 2px solid #5d4297; border-radius:15px; padding:20px; text-align:center;">
-            <h3 style="color:#ffd700; margin-top:0;">召喚池說明</h3>
-            <p style="font-size:13px; line-height:1.5; color:#aaa; text-align:left;">
-                1. 基礎概率：5星傳奇英靈（10%）、4星精英戰士（20%）。<br>
-                2. <b>【Plan B 精算加成】</b>：每次召喚前答對法陣概率謎題，5星概率直接<b>翻倍至 20%</b>！
+    <div class="summon-right">
+        <div style="background: rgba(0,0,0,0.5); border: 2px solid #e0c068; border-radius:15px; padding:20px; line-height:1.6;">
+            <h3 style="color:#ffd700; margin-top:0;">最新 TCG 卡池：星導創世紀</h3>
+            <p style="font-size:13px; color:#ccc;">
+                <b>包含三大豪華卡牌類型：</b><br>
+                1. <b>人物角色 (EX)</b>：高斯、費馬、貝葉斯（10% 基礎爆率）<br>
+                2. <b>寵物 (Pet)</b>：阿基米德鴞、卡爾丹熊（30% 爆率）<br>
+                3. <b>武器與加成</b>：帕斯卡三叉戟、貝葉斯羅盤（60% 爆率）<br>
+                <br>
+                💡 <b>Plan B 爆率加成</b>：答對上方 DSE 難度題，5星角色爆率<b>翻倍至 20%</b>！
             </p>
         </div>
-        <a href="lobby.html" class="btn-back-lobby">🏰 返回夢幻城堡大廳</a>
+        <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
     </div>
 </div>
 
-<!-- 翻翻牌動畫彈窗 -->
-<div class="gacha-result-overlay" id="resultOverlay">
+<div class="reveal-overlay" id="revealOverlay">
     <div style="color:#ffd700; font-size:24px; font-weight:bold; margin-bottom:20px; text-shadow:0 0 10px #ffd700;">★ 召喚成功 ★</div>
     
-    <div class="holo-card" id="resultCard">
-        <div style="padding:15px; color:#fff; display:flex; flex-direction:column; height:100%; justify-content:space-between; box-sizing:border-box;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:18px;">
+    <div class="tcg-holo-card" id="tcgCard" onclick="revealCard()">
+        <div class="card-back" id="cardBack">TCG</div>
+        <div class="card-front" id="cardFront">
+            <div class="holo-foil" id="holoFoil"></div>
+            <div class="card-header-tcg">
                 <span id="cardName">英靈</span>
-                <span id="cardAttr">雷</span>
+                <span id="cardType">角色</span>
             </div>
-            <div id="cardStars" style="color:#ffd700; font-size:14px;">⭐⭐⭐⭐⭐</div>
-            <div id="cardArt" style="height:170px; background:#111; border:2px solid #e0c068; border-radius:8px; display:flex; justify-content:center; align-items:center; font-size:48px;">🛡️</div>
-            <div style="background:rgba(0,0,0,0.8); border:1px solid #ffd700; border-radius:6px; padding:10px; font-size:12px; color:#ccc;">
+            <div class="card-stars" id="cardStars">⭐⭐⭐⭐⭐</div>
+            <div class="card-illustration-tcg" id="cardArt">⚡</div>
+            <div class="card-info-tcg">
                 <b id="cardSkillTitle">技能</b>
-                <p id="cardSkillDesc" style="margin:5px 0 0 0; line-height:1.3;"></p>
+                <p id="cardSkillDesc" style="margin:5px 0 0 0; line-height:1.4;"></p>
             </div>
         </div>
     </div>
 
-    <button class="btn-confirm-gacha" onclick="closeOverlay()">收入背包</button>
+    <button class="btn-confirm-gacha" id="confirmBtn" style="display:none;" onclick="closeOverlay()">收入背包</button>
 </div>
 
 <script>
-    // ==========================================
-    // ⚠️ 請在此處填入你的 Supabase 連接資訊 ⚠️
-    // ==========================================
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
+    let supabaseClient = null;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     const studentId = localStorage.getItem('supabase_student_id');
-    let gems = 1000;
-    let isBoosted = false; // 是否獲得爆率加成
-
-    // 動態 DSE 題目生成
+    const studentName = localStorage.getItem('supabase_student_name');
+    let gems = 0;
+    let isBoosted = false; 
+    let isFlipped = false;
     let currentBoosterAns = 0;
-    const gachaPool = [
-        { name: '雷鳴精算師 · 高斯', attr: '雷', stars: '⭐⭐⭐⭐⭐', emoji: '⚡', skill: '常態修正', desc: '概率戰中答對時直接鎖定滿額輸出！' },
-        { name: '時空編織者 · 費馬', attr: '光', stars: '⭐⭐⭐⭐⭐', emoji: '🔮', skill: '概率預知', desc: '提前揭示未來 3 回合敵方的攻擊勝率。' },
-        { name: '鋼鐵防線 · 巴斯卡', attr: '土', stars: '⭐⭐⭐⭐', emoji: '🛡️', skill: '三角防護', desc: '盾牌防守失敗時提供一次公式精算重骰機會。' },
-        { name: '幻影刺客 · 貝葉斯', attr: '暗', stars: '⭐⭐⭐⭐', emoji: '🗡️', skill: '天雷神罰', desc: '在特定潮濕狀態下，造成翻倍暴擊傷害！' }
+
+    const parallaxShrine = document.getElementById('parallaxShrine');
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.clientX) / 45;
+        const y = (window.innerHeight / 2 - e.clientY) / 45;
+        parallaxShrine.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+    });
+
+    const gachaPool = {
+        characters: [
+            { name: '雷鳴精算師 · 高斯', type: '人物角色', stars: '⭐⭐⭐⭐⭐', emoji: '🧙‍♂️', skill: '常態修正', desc: '雷屬性 EX 卡牌。期望值精算正確時觸發雷擊，對敵方造成 150 點滿額真實傷害！', styleClass: 'card-character' },
+            { name: '時空編織者 · 費馬', type: '人物角色', stars: '⭐⭐⭐⭐⭐', emoji: '🔮', skill: '概率路徑', desc: '水屬性 EX 卡牌。能預知未來 3 回合內，敵方暴擊與攻擊觸發的精確概率。', styleClass: 'card-character' },
+            { name: '幻影刺客 · 貝葉斯', type: '人物角色', stars: '⭐⭐⭐⭐', emoji: '🗡️', skill: '條件神罰', desc: '暗屬性 EX 卡牌。在特定潮濕或標記狀態下，造成的暴擊機率及傷害提升至 80%！', styleClass: 'card-character' }
+        ],
+        pets: [
+            { name: '阿基米德鴞', type: '寵物', stars: '⭐⭐⭐⭐', emoji: '🦉', skill: '窮竭守護', desc: '風屬性神寵。能將敵方的單次必殺技傷害期望值降低 30 點。', styleClass: 'card-pet' },
+            { name: '卡爾丹熊', type: '寵物', stars: '⭐⭐⭐', emoji: '🐻', skill: '大數幸運', desc: '土屬性寵物。增加全隊卡組 10% 的防禦與重骰觸發機率。', styleClass: 'card-pet' }
+        ],
+        weapons: [
+            { name: '帕斯卡三叉戟', type: '武器卡', stars: '⭐⭐⭐⭐', emoji: '🔱', skill: '三角聯攜', desc: '黃金武器。自建卡組中排列組合題目的暴擊傷害加成 40%。', styleClass: 'card-weapon' },
+            { name: '貝葉斯羅盤', type: '武器卡', stars: '⭐⭐⭐', emoji: '🧭', skill: '條件羅盤', desc: '青銅武器。回答條件概率題目時，自動排除一個錯誤答案。', styleClass: 'card-weapon' }
+        ]
+    };
+
+    const boosterQuestions = [
+        {
+            template: "星導卡池5星概率為 {p}%。進行連續 {n} 次單抽，請問【至少抽中一次】5星卡牌的概率是多少%？",
+            calc: (p, n) => 1 - Math.pow(1 - p/100, n)
+        },
+        {
+            template: "庫存 5 張水晶牌，其中包含紅色與藍色。若兩者【不可相鄰】，一共有多少種不同的排列方式？(可供選擇的水晶有 {n} 種)",
+            calc: (p, n) => {
+                return (n === 5) ? 72 : 120;
+            }
+        },
+        {
+            template: "發動巴斯卡之盾。若連續遭受到 2 次攻擊，每次獨立觸發率為 {p}%，請問【兩次都失敗】的概率是多少%？",
+            calc: (p, n) => Math.pow(1 - p/100, 2)
+        }
     ];
 
-    // 初始化與加載寶石
     async function initGacha() {
         if (!studentId) {
-            alert('請先在學院傳送門登入！');
+            alert('請先登入！');
             window.location.href = 'index.html';
             return;
         }
 
-        const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
-        if (data) {
-            gems = data.gems;
-            document.getElementById('gemCount').innerText = gems;
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            let user = users[studentName];
+            if (user) gems = user.gems;
+        } else {
+            const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
+            if (data) {
+                gems = data.gems;
+            }
         }
+        document.getElementById('gemCount').innerText = gems;
         generateBoosterQuestion();
     }
 
-    // 生成隨機 DSE 概率題目 (Plan B)
     function generateBoosterQuestion() {
-        const pulls = Math.floor(Math.random() * 2) + 2; // 2 或 3 次
-        const ratePercent = Math.floor(Math.random() * 3) * 5 + 10; // 10%, 15%, 或 20%
-        const rateDecimal = ratePercent / 100;
+        const qIndex = Math.floor(Math.random() * boosterQuestions.length);
+        const q = boosterQuestions[qIndex];
         
-        // P(至少中一次) = 1 - (1 - rate)^pulls
-        const rawAns = 1 - Math.pow(1 - rateDecimal, pulls);
-        currentBoosterAns = parseFloat((rawAns * 100).toFixed(1)); // 保留一位小數
+        let p = Math.floor(Math.random() * 2) * 10 + 10;
+        let n = Math.floor(Math.random() * 2) + 2;
+        if (qIndex === 1) { n = 5; }
 
-        document.getElementById('boosterQuest').innerText = `「召喚池5星英靈中獎率為 ${ratePercent}%。若你進行連續 ${pulls} 次單抽，請問【至少抽中一次】5星英靈的概率是多少%？」(四捨五入至小數點後一位)`;
+        let rawAns = q.calc(p, n);
+        currentBoosterAns = parseFloat((rawAns * 100).toFixed(1));
+
+        let qText = q.template.replace("{p}", p).replace("{n}", n);
+        document.getElementById('boosterQuest').innerText = qText + " (四捨五入至小數點後一位)";
         document.getElementById('boosterInput').value = '';
         document.getElementById('boosterFeedback').innerText = '';
     }
 
-    // 驗證 Plan B
     function checkBooster() {
         const studentAns = parseFloat(document.getElementById('boosterInput').value);
         const fb = document.getElementById('boosterFeedback');
 
         if (isNaN(studentAns)) {
-            fb.innerText = '⚠️ 請輸入答案！';
+            fb.innerText = '⚠️ 請輸入數值！';
             fb.style.color = '#ff4d4d';
             return;
         }
 
         if (Math.abs(studentAns - currentBoosterAns) <= 0.2) {
             isBoosted = true;
-            fb.innerText = '🔥 答對了！魔法陣爆發極致金光，5星爆率提升至 20%！';
+            fb.innerText = '🔥 答對了！魔法陣發出金光，5星爆率翻倍至 20%！';
             fb.style.color = '#00ffcc';
             document.getElementById('altar').classList.add('boosted');
         } else {
             isBoosted = false;
-            fb.innerText = `❌ 算錯了，法陣維持冷色（提示：使用餘事公式 $1 - (1 - p)^n$ 算出為 ${currentBoosterAns}%）`;
+            fb.innerText = `❌ 答案不正確！維持基礎爆率（標準解法算得 ${currentBoosterAns}%）`;
             fb.style.color = '#ff4d4d';
             document.getElementById('altar').classList.remove('boosted');
         }
     }
 
-    // 神魔之塔拉石碑觸摸滑動手勢
     const stone = document.getElementById('stone');
     const altar = document.getElementById('altar');
     let startY = 0, isDragging = false;
@@ -376,11 +517,10 @@
     window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         let deltaY = e.clientY - startY;
-        if (deltaY > 0 && deltaY < 120) {
+        if (deltaY > 0 && deltaY < 130) {
             stone.style.transform = `translateY(${deltaY}px)`;
         }
-        if (deltaY >= 110) {
-            // 拉到底部，觸發召喚
+        if (deltaY >= 115) {
             isDragging = false;
             stone.style.transform = 'translateY(0)';
             triggerSummon();
@@ -394,81 +534,105 @@
         }
     });
 
-    // 執行召喚
     async function triggerSummon() {
         if (gems < 100) {
-            alert('😭 你的寶石不足！請前往決鬥場答題獲取金幣。');
+            alert('😭 寶石不足！請去城堡大廳向星導泉祈願或去決鬥場挑戰獲取。');
             return;
         }
 
         gems -= 100;
         document.getElementById('gemCount').innerText = gems;
 
-        // 雲端實時更新寶石扣除
-        await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
-
-        // 機率計算
         let roll = Math.random();
-        let rate5Star = isBoosted ? 0.20 : 0.10; // 爆率提升
-
+        let rate5Star = isBoosted ? 0.20 : 0.10;
         let selectedHero = null;
+
         if (roll < rate5Star) {
-            // 5星卡
-            const fiveStars = gachaPool.filter(h => h.stars === '⭐⭐⭐⭐⭐');
-            selectedHero = fiveStars[Math.floor(Math.random() * fiveStars.length)];
+            selectedHero = gachaPool.characters[Math.floor(Math.random() * gachaPool.characters.length)];
+        } else if (roll < rate5Star + 0.30) {
+            selectedHero = gachaPool.pets[Math.floor(Math.random() * gachaPool.pets.length)];
         } else {
-            // 4星卡
-            const fourStars = gachaPool.filter(h => h.stars === '⭐⭐⭐⭐');
-            selectedHero = fourStars[Math.floor(Math.random() * fourStars.length)];
+            selectedHero = gachaPool.weapons[Math.floor(Math.random() * gachaPool.weapons.length)];
         }
 
-        // 展示神魔 TCG 翻開卡牌特效
-        showCardReveal(selectedHero);
-
-        // 寫入學生的已解鎖卡牌背包
-        const { data } = await supabaseClient.from('student_progress').select('unlocked_cards').eq('student_id', studentId).single();
-        let cards = data.unlocked_cards || [];
-        if (!cards.includes(selectedHero.name)) {
-            cards.push(selectedHero.name);
+        if (isLocalMode) {
+            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
+            if (users[studentName]) {
+                users[studentName].gems = gems;
+                // 💡 直接將重複卡牌推入Unlocked背包！
+                users[studentName].unlocked_cards.push(selectedHero.name);
+                localStorage.setItem('local_users', JSON.stringify(users));
+            }
+        } else {
+            await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
+            const { data } = await supabaseClient.from('student_progress').select('unlocked_cards').eq('student_id', studentId).single();
+            let cards = data.unlocked_cards || [];
+            cards.push(selectedHero.name); // 💡 直接推入重複卡
             await supabaseClient.from('student_progress').update({ unlocked_cards: cards }).eq('student_id', studentId);
         }
 
-        // 重新刷新 Plan B
+        prepareCard(selectedHero);
+
         isBoosted = false;
         document.getElementById('altar').classList.remove('boosted');
         generateBoosterQuestion();
     }
 
-    function showCardReveal(hero) {
+    function prepareCard(hero) {
+        const card = document.getElementById('tcgCard');
+        const front = document.getElementById('cardFront');
+        
+        isFlipped = false;
+        card.style.transform = "rotateY(0deg)";
+        document.getElementById('confirmBtn').style.display = "none";
+
         document.getElementById('cardName').innerText = hero.name;
-        document.getElementById('cardAttr').innerText = hero.attr;
+        document.getElementById('cardType').innerText = hero.type;
         document.getElementById('cardStars').innerText = hero.stars;
         document.getElementById('cardArt').innerText = hero.emoji;
-        document.getElementById('cardSkillTitle').innerText = `【技能】${hero.skill}`;
+        document.getElementById('cardSkillTitle').innerText = `【必殺技】${hero.skill}`;
         document.getElementById('cardSkillDesc').innerText = hero.desc;
 
-        document.getElementById('resultOverlay').style.display = 'flex';
+        front.className = `card-front ${hero.styleClass}`;
+
+        document.getElementById('revealOverlay').style.display = 'flex';
+    }
+
+    function revealCard() {
+        if (!isFlipped) {
+            const card = document.getElementById('tcgCard');
+            card.style.transform = "rotateY(180deg)";
+            isFlipped = true;
+            setTimeout(() => {
+                document.getElementById('confirmBtn').style.display = "block";
+            }, 800);
+        }
     }
 
     function closeOverlay() {
-        document.getElementById('resultOverlay').style.display = 'none';
+        document.getElementById('revealOverlay').style.display = 'none';
     }
 
-    // 鼠標懸停卡牌視差折射
-    const card = document.getElementById('resultCard');
-    card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
+    const cardEl = document.getElementById('tcgCard');
+    cardEl.addEventListener('mousemove', (e) => {
+        if (!isFlipped) return;
+        const rect = cardEl.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        const rotateY = -(rect.width/2 - x) / (rect.width / 20);
-        const rotateX = (rect.height/2 - y) / (rect.height / 20);
-        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        const rotY = -(rect.width/2 - x) / (rect.width / 25);
+        const rotX = (rect.height/2 - y) / (rect.height / 25);
+        cardEl.style.transform = `rotateX(${rotX}deg) rotateY(${180 + rotY}deg)`;
+        
+        const px = (x/rect.width)*100;
+        const py = (y/rect.height)*100;
+        document.getElementById('holoFoil').style.backgroundPosition = `${px}% ${py}%`;
     });
-    card.addEventListener('mouseleave', () => card.style.transform = 'rotateX(0) rotateY(0)');
+
+    cardEl.addEventListener('mouseleave', () => {
+        if (isFlipped) cardEl.style.transform = "rotateY(180deg)";
+    });
 
     initGacha();
 </script>
 </body>
 </html>
-
-
