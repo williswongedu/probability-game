@@ -1,4 +1,4 @@
-battle_html_v3 = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -281,13 +281,7 @@ battle_html_v3 = """<!DOCTYPE html>
             </div>
 
             <!-- 我方備戰區 -->
-            <div class="bench-zone-ptcg" id="playerBench">
-                <div class="bench-slot" id="bench0" onclick="deployToActive(0)">空</div>
-                <div class="bench-slot" id="bench1" onclick="deployToActive(1)">空</div>
-                <div class="bench-slot" id="bench2" onclick="deployToActive(2)">空</div>
-                <div class="bench-slot" id="bench3" onclick="deployToActive(3)">空</div>
-                <div class="bench-slot" id="bench4" onclick="deployToActive(4)">空</div>
-            </div>
+            <div class="bench-zone-ptcg" id="playerBench"></div>
         </div>
 
         <div class="quiz-panel-ptcg">
@@ -323,8 +317,8 @@ battle_html_v3 = """<!DOCTYPE html>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 
     let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
     let supabaseClient = null;
@@ -534,7 +528,7 @@ battle_html_v3 = """<!DOCTYPE html>
     }
 
     async function uploadDSERecord(isCorrect) {
-        if (isLocalMode) return; // 本地測試免存成績
+        if (isLocalMode) return;
         try {
             const { data: record } = await supabaseClient.from('dse_records').select('*').eq('student_id', studentId).eq('topic', currentTopic).single();
             if (record) {
@@ -574,10 +568,4 @@ battle_html_v3 = """<!DOCTYPE html>
     initBattle();
 </script>
 </body>
-</html>"""
-
-with open('battle.html', 'w', encoding='utf-8') as f:
-    f.write(battle_html_v3)
-
-print("battle.html updated with sync + fallback.")
-
+</html>
