@@ -105,6 +105,7 @@
             text-shadow: 0 0 8px rgba(157, 142, 255, 0.5);
         }
 
+        /* 四個傳送門卡牌排版 */
         .portal-zone {
             position: relative;
             display: flex;
@@ -265,8 +266,9 @@
     <p class="castle-subtitle">—— 選擇你想解鎖的概率魔法試煉門 ——</p>
 </div>
 
-<!-- 四大傳送門 -->
+<!-- 四大黃金卡牌入口 -->
 <div class="portal-zone">
+    <!-- 1. 召喚神殿 -->
     <div class="portal-card" onclick="navigateTo('gacha.html')">
         <div class="card-illustration">🔮</div>
         <div>
@@ -276,6 +278,7 @@
         <button class="btn-enter">進入召喚</button>
     </div>
 
+    <!-- 2. 卡牌背包圖鑑 -->
     <div class="portal-card" onclick="navigateTo('deck_dex.html')">
         <div class="card-illustration">📖</div>
         <div>
@@ -285,6 +288,7 @@
         <button class="btn-enter">管理牌組</button>
     </div>
 
+    <!-- 3. 概率線上決鬥 -->
     <div class="portal-card" onclick="navigateTo('battle.html')">
         <div class="card-illustration">⚔️</div>
         <div>
@@ -294,6 +298,7 @@
         <button class="btn-enter">進入決鬥</button>
     </div>
 
+    <!-- 4. 數學小遊戲（拋物線加農砲） -->
     <div class="portal-card" onclick="navigateTo('minigames.html')">
         <div class="card-illustration">🎯</div>
         <div>
@@ -304,6 +309,7 @@
     </div>
 </div>
 
+<!-- 每日祈願泉 -->
 <div class="fountain-container">
     <button class="btn-fountain" onclick="claimDailyGems()">⛲ 每日祈願泉（獲取 500 寶石）</button>
 </div>
@@ -360,7 +366,17 @@
         localStorage.setItem('cached_gems', gems);
     }
 
+    // 💡 已修正 Bug：利用今日日期字串 (Today String) 限制每天只能成功領取一次！
     async function claimDailyGems() {
+        const today = new Date().toDateString(); // 例如: "Sat Oct 26 2024"
+        const lastClaimedKey = `last_claimed_date_${studentName}`;
+        const lastClaimed = localStorage.getItem(lastClaimedKey);
+
+        if (lastClaimed === today) {
+            alert('⛲ 今天的祈願能量已經用完囉！請明天再來到泉水前祈願領取寶石。');
+            return;
+        }
+
         let currentGems = parseInt(document.getElementById('studentGems').innerText);
         let newGems = currentGems + 500;
 
@@ -382,7 +398,10 @@
             }
         }
 
-        alert('⛲ 祈願成功！星導噴泉溢出魔力，您獲得了 500 💎 寶石！');
+        // 領取成功，寫入今日日期作為標記
+        localStorage.setItem(lastClaimedKey, today);
+
+        alert('🎉 祈願成功！星導噴泉溢出魔力，您獲得了 500 💎 寶石！');
         document.getElementById('studentGems').innerText = newGems;
         localStorage.setItem('cached_gems', newGems);
     }
