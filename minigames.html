@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數源對決 - 數學小遊戲</title>
+    <title>數源對決 - 皇家數學小遊戲</title>
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -14,6 +14,7 @@
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; box-sizing: border-box;
+            overflow-y: auto;
         }
 
         h1 {
@@ -37,570 +38,12 @@
             margin-bottom: 20px;
         }
 
-        /* 中一至中五級選單 */
+        /* 年級切換按鈕 */
         .grade-tabs {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .grade-btn {
-            background: rgba(255,255,255,0.05);
-            border: 2px solid #5d4297;
-            border-radius: 20px;
-            color: #d1dbff;
-            padding: 8px 20px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .grade-btn.active, .grade-btn:hover {
-            background: linear-gradient(135deg, #00ffcc 0%, #008b8b 100%);
-            color: #120524;
-            border-color: #fff;
-            box-shadow: 0 0 15px #00ffcc;
-        }
-
-        .game-panel {
-            background: rgba(12, 6, 28, 0.9);
-            border: 3px solid #e0c068;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            display: none; /* 預設隱藏 */
-        }
-
-        .game-panel.active {
-            display: block;
-        }
-
-        /* 拋物線加農砲專用看板 */
-        .cannon-workspace {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .grid-canvas-box {
-            flex: 1.2;
-            min-width: 320px;
-            background: #000;
-            border: 2px solid #5d4297;
-            border-radius: 12px;
-            position: relative;
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 350px;
-            background: #020208;
-        }
-
-        .control-inputs-box {
-            flex: 0.8;
-            min-width: 280px;
-            background: rgba(0,0,0,0.5);
-            border: 1.5px solid #233470;
-            border-radius: 12px;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .formula-preview {
-            font-size: 20px;
-            font-weight: bold;
-            color: #00ffff;
-            text-align: center;
-            margin: 15px 0;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-            font-family: 'Georgia', serif;
-        }
-
-        .input-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .input-row label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffd700;
-        }
-
-        .input-row input {
-            width: 100px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #5d4297;
-            border-radius: 6px;
-            color: #fff;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .btn-launch {
-            background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
-            color: #120524;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 78, 80, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .btn-launch:hover { transform: scale(1.03); }
-
-        /* 鎖定面板樣式 */
-        .locked-game-display {
-            text-align: center;
-            padding: 40px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            border: 2px dashed #5d4297;
-        }
-
-        .locked-emoji {
-            font-size: 60px;
-            margin-bottom: 20px;
-            animation: float-locked 3s ease-in-out infinite;
-        }
-
-        @keyframes float-locked {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .btn-back {
-            background: transparent;
-            border: 2px solid #5d4297;
-            color: #d1dbff;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header-bar">
-        <span style="font-weight:bold; color:#ffd700; font-size:18px;">🧪 城堡皇家數學小遊戲</span>
-        <span>💎 擁有寶石：<span id="gemCount">0</span></span>
-    </div>
-
-    <!-- 年級按鈕選單 -->
-    <div class="grade-tabs">
-        <button class="grade-btn" onclick="selectGrade(1)">中一級 (F.1)</button>
-        <button class="grade-btn" onclick="selectGrade(2)">中二級 (F.2)</button>
-        <button class="grade-btn" onclick="selectGrade(3)">中三級 (F.3)</button>
-        <button class="grade-btn active" onclick="selectGrade(4)">中四級 (F.4)</button>
-        <button class="grade-btn" onclick="selectGrade(5)">中五級 (F.5)</button>
-    </div>
-
-    <!-- 中一級遊戲 (Algebraic Balance) -->
-    <div class="game-panel" id="panel1">
-        <div class="locked-game-display">
-            <div class="locked-emoji">⚖️</div>
-            <h3 style="color:#00ffcc;">《代數天平》- 一元一次方程</h3>
-            <p style="font-size:14px; color:#ccc; line-height:1.6; max-width:600px; margin:0 auto;">
-                <b>遊戲玩法想法</b>：畫面上有一座失衡的天平，兩端放著代數寶箱 $x$ 與金色砝碼。學生需要拖動並進行「移項操作」，將 $x$ 的未知箱移至天平左側，數值砝碼移至右側，最終精算出未知數 $x$ 使天平達到完美平衡！<br>
-                <br>
-                <span style="color:#ffd700; font-weight:bold;">✨ 星導院蓄能中：即將在下個校本版本中解鎖！</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- 中二級遊戲 (Pythagorean Castle Defense) -->
-    <div class="game-panel" id="panel2">
-        <div class="locked-game-display">
-            <div class="locked-emoji">🛡️</div>
-            <h3 style="color:#00ffcc;">《勾股要塞》- 畢氏定理</h3>
-            <p style="font-size:14px; color:#ccc; line-height:1.6; max-width:600px; margin:0 auto;">
-                <b>遊戲玩法想法</b>：敵方熱氣球在空中壓境！畫面上會顯示直角三角形城堡的兩條直角防線長度 $a$ 與 $b$。學生需要精算出斜邊長度 $c$（例如 $\sqrt{5^2 + 12^2} = 13$），輸入正確的砲彈發射弦長度，精準擊落飛船！<br>
-                <br>
-                <span style="color:#ffd700; font-weight:bold;">✨ 星導院蓄能中：即將在下個校本版本中解鎖！</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- 中三級遊戲 (Trigonometric Island Navigator) -->
-    <div class="game-panel" id="panel3">
-        <div class="locked-game-display">
-            <div class="locked-emoji">⛵</div>
-            <h3 style="color:#00ffcc;">《三角星海航行》- 三角比基礎</h3>
-            <p style="font-size:14px; color:#ccc; line-height:1.6; max-width:600px; margin:0 auto;">
-                <b>遊戲玩法想法</b>：操控小船避開礁石到達指定島嶼。畫面上會給出與島嶼的水平角度（例如 $30^\circ$）和直線距離。學生需要運用正弦 ($\sin$) 或餘弦 ($\cos$) 計算出水平航行或垂直上升的單位，完美穿越星海迷霧！<br>
-                <br>
-                <span style="color:#ffd700; font-weight:bold;">✨ 星導院蓄能中：即將在下個校本版本中解鎖！</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- 中四級遊戲 (Parabolic Vertex Cannon) - Playable -->
-    <div class="game-panel active" id="panel4">
-        <h3 style="color:#ffd700; margin:0;">🎯 二次函數頂點式 (Vertex Form) 實彈模擬</h3>
-        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
-            <b>遊戲規則</b>：在右側輸入拋物線 $y = a(x - h)^2 + k$ 的各項參數，調整砲彈的彈道曲線，成功擊中座標網格中的黃金目標！<br>
-            擊中黃金目標，將會獲得 <b>100 寶石</b> 獎勵！
-        </p>
-
-        <div class="cannon-workspace">
-            <div class="grid-canvas-box">
-                <canvas id="gameCanvas"></canvas>
-            </div>
-
-            <div class="control-inputs-box">
-                <div>
-                    <h4 style="margin-top:0; color:#00ffcc;">🔬 彈道方程式</h4>
-                    <div class="formula-preview" id="formulaText">y = a(x - h)² + k</div>
-                    
-                    <div class="input-row">
-                        <label>開口/拉伸 (a):</label>
-                        <input type="number" step="0.05" id="paramA" value="-0.1" oninput="updateFormula()">
-                    </div>
-                    <div class="input-row">
-                        <label>頂點 X 座標 (h):</label>
-                        <input type="number" step="1" id="paramH" value="5" oninput="updateFormula()">
-                    </div>
-                    <div class="input-row">
-                        <label>頂點 Y 座標 (k):</label>
-                        <input type="number" step="1" id="paramK" value="8" oninput="updateFormula()">
-                    </div>
-                </div>
-
-                <button class="btn-launch" onclick="launchProjectile()">🔥 發射魔法砲彈</button>
-            </div>
-        </div>
-        <div id="gameFeedback" style="margin-top:15px; font-weight:bold; text-align:center; min-height:22px;"></div>
-    </div>
-
-    <!-- 中五級遊戲 (Geometric Star-Link Summit) -->
-    <div class="game-panel" id="panel5">
-        <div class="locked-game-display">
-            <div class="locked-emoji">📡</div>
-            <h3 style="color:#00ffcc;">《等比星鏈計畫》- 等差與等比數列</h3>
-            <p style="font-size:14px; color:#ccc; line-height:1.6; max-width:600px; margin:0 auto;">
-                <b>遊戲玩法想法</b>：為城堡鋪設星光防禦天線。每個塔發射的魔能半徑呈等比數列遞增（例如 $1, 2, 4, 8...$）。系統會給出首項 $a$ 和公比 $r$，學生需要精算出第 $n$ 項或前 $n$ 項之和（求和公式 $S_n$），輸入正確能量頻率，接通防禦星網！<br>
-                <br>
-                <span style="color:#ffd700; font-weight:bold;">✨ 星導院蓄能中：即將在下個校本版本中解鎖！</span>
-            </p>
-        </div>
-    </div>
-
-    <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
-</div>
-
-<script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
-
-    let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
-    let supabaseClient = null;
-    if (!isLocalMode) {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    const studentId = localStorage.getItem('supabase_student_id');
-    const studentName = localStorage.getItem('supabase_student_name');
-    let gems = 0;
-
-    // 畫布與坐標
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let targetX = 8;
-    let targetY = 4;
-    const scale = 30; 
-    const originX = 50; 
-    const originY = 300;
-
-    let projX = 0;
-    let tracePoints = [];
-    let animationId = null;
-
-    function selectGrade(grade) {
-        document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
-
-        event.target.classList.add('active');
-        document.getElementById(`panel${grade}`).classList.add('active');
-
-        if (grade === 4) {
-            drawGrid();
-        }
-    }
-
-    async function initGame() {
-        if (!studentId) {
-            alert('請先登入！');
-            window.location.href = 'index.html';
-            return;
-        }
-
-        if (isLocalMode) {
-            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
-            let user = users[studentName];
-            if (user) gems = user.gems;
-        } else {
-            const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
-            if (data) gems = data.gems;
-        }
-        document.getElementById('gemCount').innerText = gems;
-
-        resetTarget();
-        drawGrid();
-        updateFormula();
-    }
-
-    function resetTarget() {
-        targetX = Math.floor(Math.random() * 5) + 6; 
-        targetY = Math.floor(Math.random() * 6) + 2; 
-        document.getElementById('gameFeedback').innerText = '';
-    }
-
-    function drawGrid() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 畫格線
-        ctx.strokeStyle = '#1e1a3c';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < canvas.width; x += scale) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-        }
-        for (let y = 0; y < canvas.height; y += scale) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-        }
-
-        // 畫坐標軸
-        ctx.strokeStyle = '#5d4297';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
-
-        // 畫發射台 (0, 0)
-        ctx.fillStyle = '#ff4e50';
-        ctx.beginPath(); ctx.arc(originX, originY, 10, 0, Math.PI * 2); ctx.fill();
-
-        // 畫黃金標靶
-        ctx.fillStyle = '#ffd700';
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(originX + targetX * scale, originY - targetY * scale, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0; 
-
-        // 畫砲彈軌跡
-        if (tracePoints.length > 0) {
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(originX + tracePoints[0].x * scale, originY - tracePoints[0].y * scale);
-            for (let i = 1; i < tracePoints.length; i++) {
-                ctx.lineTo(originX + tracePoints[i].x * scale, originY - tracePoints[i].y * scale);
-            }
-            ctx.stroke();
-        }
-    }
-
-    function updateFormula() {
-        const a = parseFloat(document.getElementById('paramA').value) || 0;
-        const h = parseFloat(document.getElementById('paramH').value) || 0;
-        const k = parseFloat(document.getElementById('paramK').value) || 0;
-        
-        let sign = h >= 0 ? '-' : '+';
-        let hAbs = Math.abs(h);
-        document.getElementById('formulaText').innerText = `y = ${a}(x ${sign} ${hAbs})² + ${k}`;
-    }
-
-    function launchProjectile() {
-        if (animationId) cancelAnimationFrame(animationId);
-        
-        const a = parseFloat(document.getElementById('paramA').value) || 0;
-        const h = parseFloat(document.getElementById('paramH').value) || 0;
-        const k = parseFloat(document.getElementById('paramK').value) || 0;
-
-        projX = 0;
-        tracePoints = [];
-        document.getElementById('gameFeedback').innerText = '🚀 魔法砲彈正在飛行中...';
-        document.getElementById('gameFeedback').style.color = '#ffd700';
-
-        function animate() {
-            projX += 0.15;
-            let y = a * Math.pow(projX - h, 2) + k;
-            tracePoints.push({ x: projX, y: y });
-
-            drawGrid();
-
-            // 繪製砲彈
-            ctx.fillStyle = '#00ffcc';
-            ctx.beginPath();
-            ctx.arc(originX + projX * scale, originY - y * scale, 6, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 命中判定 (距離目標誤差小於 0.4 單位為命中)
-            let dist = Math.sqrt(Math.pow(projX - targetX, 2) + Math.pow(y - targetY, 2));
-            if (dist <= 0.4) {
-                cancelAnimationFrame(animationId);
-                triggerSuccess();
-                return;
-            }
-
-            // 超出邊界或落地則停止
-            if (y < -2 || projX > 15) {
-                cancelAnimationFrame(animationId);
-                document.getElementById('gameFeedback').innerText = '❌ 未能擊中目標！請重新調整頂點與開口大小。';
-                document.getElementById('gameFeedback').style.color = '#ff4d4d';
-                return;
-            }
-
-            animationId = requestAnimationFrame(animate);
-        }
-
-        animate();
-    }
-
-    async function triggerSuccess() {
-        document.getElementById('gameFeedback').innerText = '🎉【完美命中！】彈道完美擊中黃金標靶！獲得 100 寶石！';
-        document.getElementById('gameFeedback').style.color = '#00ffcc';
-
-        gems += 100;
-        document.getElementById('gemCount').innerText = gems;
-
-        if (isLocalMode) {
-            let users = JSON.parse(localStorage.getItem('local_users') || '{}');
-            if (users[studentName]) {
-                users[studentName].gems = gems;
-                localStorage.setItem('local_users', JSON.stringify(users));
-            }
-        } else {
-            await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
-        }
-
-        setTimeout(() => {
-            resetTarget();
-            drawGrid();
-        }, 3000);
-    }
-
-    canvas.width = 500;
-    canvas.height = 350;
-
-    document.addEventListener('DOMContentLoaded', initGame);
-</script>
-</body>
-</html>"""
-
-with open('minigames.html', 'w', encoding='utf-8') as f:
-    f.write(minigames_v4_content)
-print("minigames.html v4 written successfully with DOMContentLoaded and selections.")
-}我們已經成功排查並修正了您提到的所有問題，並為「數學小遊戲」設計了極富教育價值與手遊趣味性的 **中一至中五級 DSE 數學單元小遊戲企劃**！
-
----
-
-### 🔍 1. 為什麼原來的「數學小遊戲」不太 Work？（已修正）
-
-原來的程式碼在測試時，如果沒有配置好 Supabase 的雲端網址和 Key，代碼在執行到 `supabaseClient.from(...)` 時會**直接崩潰報錯，導致畫布（Canvas）完全無法載入**，所以玩家看到的是一片空白。
-
-#### 🛠️ 修復方案：
-我為 `minigames.html` 新增了 **「超強容錯與自動本地/雲端雙切換（Robust Fallback & Safe Check）」**。
-* 現在，系統在偵測到您的 Supabase URL 為預設占位符或未配置時，會**在一微秒內自動切換到 LocalStorage 本地儲存模式**，完全不會崩潰！
-* 另外，我修正了 Canvas（畫布）的內外分辨率拉伸問題，不論在什麼尺寸的電腦或 iPad 上，魔法彈道和標靶坐標都會保持 100% 精確吻合！
-
----
-
-### 🎯 二、 中一至中五級：「數學小遊戲」DSE 創意提案
-
-為了讓「數學小遊戲」頁面成為一個內容豐富、跨越中學五個年級的教育智力庫，我為您精心規劃了以下 5 個**關卡式小遊戲想法**：
-
-*   **⛵ 中一級：【深海潛艇（ directed numbers 負數運算）】**
-    *   **遊戲背景**：深海中浮現出多個刻有黃金坐標（如 $-15\text{m}$、$-35\text{m}$）的古老寶箱。
-    *   **玩法設計**：玩家操控一艘潛水艇，潛水艇需要通過輸入正確的有向數加減法算式（例如：從 $-20\text{m}$ 下潛 $15\text{m}$，玩家需要輸入並計算 $-20 + (-15) = -35$）來精準定位並抓取寶箱！
-*   **🧗‍♂️ 中二級：【魔法畢氏攀爬者（Pythagoras' Theorem 畢氏定理）】**
-    *   **遊戲背景**：攀爬者需要將勾爪繩索精準拋射至城堡頂端的黃金平台上。
-    *   **玩法設計**：系統會隨機給出城堡高度（直角三角形直角邊 $a$）和地面前進距離（直角邊 $b$）。玩家必須動腦使用畢氏定理 $a^2 + b^2 = c^2$ 計算出斜邊繩索的精確長度 $c$，輸入正確即可帥氣攀登！
-*   **🏹 中三級：【三角狙擊仰角鏡（Trigonometric Ratios 三角學）】**
-    *   **遊戲背景**：要塞需要朝著遠處天空中漂浮的混沌結晶發射一束折射雷射光。
-    *   **玩法設計**：系統隨機提供水平距離（直角三角形鄰邊 $x$）和結晶高度（直角邊 $y$）。玩家必須熟練使用三角比例公式（如 $\tan \theta = \frac{y}{x}$）計算出雷射炮精準的發射仰角 $\theta$，輸入角度後一擊穿星！
-*   **🎯 中四級：【拋物線加農砲（Quadratic Vertex Form 二次函數）】 —— 本次首發 Playable 模組！**
-    *   **遊戲背景**：在坐標網格內實彈調整二次函數的對稱軸、頂點和拉伸係數，控制砲彈彈道。
-    *   **玩法設計**：輸入 $y = a(x-h)^2 + k$ 的各項參數（開口 $a$、頂點座標 $h$ 與 $k$）發射砲彈，利用完美的曲線彈道繞過障礙物，擊中黃金寶珠，每次成功命中直接斬獲 **100 寶石** 獎勵！
-*   **🛡️ 中五級：【圓形星河防禦盾（Equation of Circles 圓的方程）】**
-    *   **遊戲背景**：混沌魔王朝著玩家的城堡發射了隨機尺寸的圓形重力力場彈。
-    *   **玩法設計**：畫面會顯示重力彈在坐標系中的圓心 $(a, b)$ 和半徑 $r$。玩家必須在限制時間內，於防禦儀表板輸入該圓的標準方程：$(x-a)^2 + (y-b)^2 = r^2$。輸入正確會立刻在相應位置展開圓形星河盾，完美吸收重力彈！
-
----
-
-### 💻 三、 100% 純淨版 `minigames.html` 最新代碼
-
-我已經為您將這 5 個年級的**選擇面板與「拋物線加農砲（中四級首發 Playable 遊戲）」**合二為一。
-
-您只需新建或打開 **`minigames.html`**，全選並**覆蓋**為以下代碼，即可完美體驗：
-
-```html
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數源對決 - 數學小遊戲</title>
-    <!-- 引入 Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            background: radial-gradient(circle at center, #0f153a 0%, #030514 100%);
-            color: #d1dbff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; box-sizing: border-box;
-        }
-
-        h1 {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255,215,0,0.5);
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            box-sizing: border-box;
-        }
-
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(224,192,104,0.3);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        /* 年級選擇按鈕 */
-        .grade-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
             flex-wrap: wrap;
         }
 
@@ -623,27 +66,31 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
         }
 
-        .game-selection-panel {
+        .game-panel {
             background: rgba(12, 6, 28, 0.9);
             border: 3px solid #e0c068;
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 0 25px rgba(224, 192, 104, 0.15);
+            display: none;
         }
 
-        /* 拋物線加農砲專用看板 */
-        .cannon-workspace {
+        .game-panel.active {
+            display: block;
+        }
+
+        .workspace-layout {
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
-        .grid-canvas-box {
+        .canvas-container {
             flex: 1.2;
             min-width: 320px;
-            background: #000;
+            background: #020208;
             border: 2px solid #5d4297;
             border-radius: 12px;
             position: relative;
@@ -653,11 +100,10 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
             display: block;
             width: 100%;
             height: 350px;
-            background: #020208;
             border-radius: 10px;
         }
 
-        .control-inputs-box {
+        .controls-container {
             flex: 0.8;
             min-width: 280px;
             background: rgba(0,0,0,0.5);
@@ -670,31 +116,21 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
             justify-content: space-between;
         }
 
-        .formula-preview {
-            font-size: 20px;
-            font-weight: bold;
-            color: #00ffff;
-            text-align: center;
-            margin: 15px 0;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-            font-family: 'Georgia', serif;
-        }
-
         .input-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .input-row label {
             font-size: 14px;
-            font-weight: bold;
             color: #ffd700;
+            font-weight: bold;
         }
 
         .input-row input {
-            width: 100px;
+            width: 110px;
             padding: 8px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid #5d4297;
@@ -704,20 +140,20 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
             font-weight: bold;
         }
 
-        .btn-launch {
+        .btn-action {
             background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
             color: #120524;
             border: none;
             padding: 12px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(255, 78, 80, 0.4);
             transition: transform 0.2s;
         }
 
-        .btn-launch:hover { transform: scale(1.03); }
+        .btn-action:hover { transform: scale(1.03); }
 
         .btn-back {
             background: transparent;
@@ -732,25 +168,12 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
             display: block;
         }
 
-        /* 鎖定年級概念展示 */
-        .teaser-panel {
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
             text-align: center;
-            padding: 40px;
-            background: rgba(0,0,0,0.5);
-            border: 2px dashed #5d4297;
-            border-radius: 12px;
-            display: none;
-        }
-
-        .teaser-emoji {
-            font-size: 60px;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            min-height: 22px;
+            font-size: 15px;
         }
     </style>
 </head>
@@ -758,63 +181,151 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
 
 <div class="container">
     <div class="header-bar">
-        <span style="font-weight:bold; color:#ffd700; font-size:18px;">🧪 數學小遊戲學院</span>
+        <span style="font-weight:bold; color:#ffd700; font-size:18px;">🧪 城堡皇家數學小遊戲</span>
         <span>💎 擁有寶石：<span id="gemCount">0</span></span>
     </div>
 
-    <!-- 年級選擇按鈕 -->
+    <!-- 年級選擇 -->
     <div class="grade-tabs">
-        <button class="grade-btn" onclick="switchGrade(1)">中一：深海潛艇 負數</button>
-        <button class="grade-btn" onclick="switchGrade(2)">中二：畢氏定理 攀爬</button>
-        <button class="grade-btn" onclick="switchGrade(3)">中三：三角狙擊 仰角</button>
-        <button class="grade-btn active" id="defaultGradeBtn" onclick="switchGrade(4)">中四：拋物線加農砲</button>
-        <button class="grade-btn" onclick="switchGrade(5)">中五：圓方程 星河盾</button>
+        <button class="grade-btn active" onclick="switchGrade(1)">中一：代數平衡天平</button>
+        <button class="grade-btn" onclick="switchGrade(2)">中二：畢氏勾股防線</button>
+        <button class="grade-btn" onclick="switchGrade(3)">中三：三角星海航行</button>
+        <button class="grade-btn" onclick="switchGrade(4)">中四：拋物線加農砲</button>
+        <button class="grade-btn" onclick="switchGrade(5)">中五：圓方程星河盾</button>
     </div>
 
-    <!-- 1. 中四級拋物線加農砲（Playable） -->
-    <div class="game-selection-panel" id="s4GamePanel">
-        <h3 style="color:#ffd700; margin:0;">🎯 二次函數頂點式 (Vertex Form) 實彈模擬</h3>
+    <!-- ================= 中一級：代數平衡天平 ================= -->
+    <div class="game-panel active" id="panel1">
+        <h3 style="color:#ffd700; margin:0;">⚖️ F.1：代數平衡天平 (一元一次方程)</h3>
         <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
-            <b>遊戲規則</b>：在右側輸入拋物線 $y = a(x - h)^2 + k$ 的各項參數，調整砲彈的彈道曲線，成功擊中座標網格中的黃金目標！<br>
-            擊中黃金目標，將會獲得 <b>100 寶石</b> 獎勵！
+            <b>規則</b>：天平左邊有 $A$ 個未知重物 $x$ 及 $B$ 個 1kg 砝碼，右邊有 $C$ 個 1kg 砝碼。求解方程式 $Ax + B = C$，精算出 $x$ 的重量使天平恢復平衡！
         </p>
-
-        <div class="cannon-workspace">
-            <div class="grid-canvas-box">
-                <canvas id="gameCanvas"></canvas>
+        <div class="workspace-layout">
+            <div class="canvas-container">
+                <canvas id="canvasS1"></canvas>
             </div>
-
-            <div class="control-inputs-box">
+            <div class="controls-container">
                 <div>
-                    <h4 style="margin-top:0; color:#00ffcc;">🔬 彈道方程式</h4>
-                    <div class="formula-preview" id="formulaText">y = a(x - h)² + k</div>
-                    
+                    <h4 style="margin-top:0; color:#00ffcc;">🔬 天平狀態</h4>
+                    <div id="equationTextS1" style="font-size:22px; font-weight:bold; text-align:center; margin:15px 0; color:#ffd700;">Loading...</div>
                     <div class="input-row">
-                        <label>開口/拉伸 (a):</label>
-                        <input type="number" step="0.05" id="paramA" value="-0.1" oninput="updateFormula()">
-                    </div>
-                    <div class="input-row">
-                        <label>頂點 X 座標 (h):</label>
-                        <input type="number" step="1" id="paramH" value="5" oninput="updateFormula()">
-                    </div>
-                    <div class="input-row">
-                        <label>頂點 Y 座標 (k):</label>
-                        <input type="number" step="1" id="paramK" value="8" oninput="updateFormula()">
+                        <label>未知數 x = </label>
+                        <input type="number" id="inputS1" placeholder="輸入解">
                     </div>
                 </div>
-
-                <button class="btn-launch" onclick="launchProjectile()">🔥 發射魔法砲彈</button>
+                <button class="btn-action" onclick="checkS1()">⚖️ 驗證平衡</button>
             </div>
         </div>
-        <div id="gameFeedback" style="margin-top:15px; font-weight:bold; text-align:center; min-height:22px;"></div>
+        <div class="feedback" id="feedbackS1"></div>
     </div>
 
-    <!-- 2. 其他年級概念展示（Teasers） -->
-    <div class="game-selection-panel teaser-panel" id="teaserPanel">
-        <div class="teaser-emoji" id="teaserEmoji">⚓</div>
-        <h3 style="color:#ffd700;" id="teaserTitle">年級小遊戲</h3>
-        <p style="color:#a291c9; max-width:600px; margin:0 auto 20px auto; line-height:1.6;" id="teaserDesc">小遊戲開發構想...</p>
-        <button class="btn-launch" style="background:#5d4297; color:#ffd700;" onclick="switchGrade(4)">💡 回到中四拋物線加農砲進行實測</button>
+    <!-- ================= 中二級：畢氏定理 ================= -->
+    <div class="game-panel" id="panel2">
+        <h3 style="color:#ffd700; margin:0;">🧗‍♂️ F.2：畢氏要塞防線 (直角三角形邊長)</h3>
+        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
+            <b>規則</b>：要塞外牆直角高為 $a$ 米，城防寬度為 $b$ 米。利用畢氏定理 $a^2 + b^2 = c^2$ 精算防禦索的斜邊長度 $c$ 擊中敵人！
+        </p>
+        <div class="workspace-layout">
+            <div class="canvas-container">
+                <canvas id="canvasS2"></canvas>
+            </div>
+            <div class="controls-container">
+                <div>
+                    <h4 style="margin-top:0; color:#00ffcc;">⚔️ 防禦參數</h4>
+                    <div style="font-size:15px; margin-bottom:15px; line-height:1.6;" id="problemS2">正在偵測敵軍距離...</div>
+                    <div class="input-row">
+                        <label>斜邊 c 長度 = </label>
+                        <input type="number" id="inputS2" placeholder="輸入斜邊c">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="checkS2()">🏹 發射防禦索</button>
+            </div>
+        </div>
+        <div class="feedback" id="feedbackS2"></div>
+    </div>
+
+    <!-- ================= 中三級：三角星海航行 ================= -->
+    <div class="game-panel" id="panel3">
+        <h3 style="color:#ffd700; margin:0;">⛵ F.3：三角星海航海導航 (三角比正切)</h3>
+        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
+            <b>規則</b>：魔法帆船距離目標島嶼水平距離 $x$ 米，觀測到島嶼的仰角為 $\theta$。利用正切公式 $\tan\theta = \frac{y}{x}$，算出島嶼的高度 $y$ 進行傳送！
+        </p>
+        <div class="workspace-layout">
+            <div class="canvas-container">
+                <canvas id="canvasS3"></canvas>
+            </div>
+            <div class="controls-container">
+                <div>
+                    <h4 style="margin-top:0; color:#00ffcc;">🧭 星海航向數據</h4>
+                    <div style="font-size:15px; margin-bottom:15px; line-height:1.6;" id="problemS3">觀察島嶼中...</div>
+                    <div class="input-row">
+                        <label>島高度 y = </label>
+                        <input type="number" step="0.1" id="inputS3" placeholder="輸入y">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="checkS3()">⛵ 錨定港口</button>
+            </div>
+        </div>
+        <div class="feedback" id="feedbackS3"></div>
+    </div>
+
+    <!-- ================= 中四級：拋物線加農砲 ================= -->
+    <div class="game-panel" id="panel4">
+        <h3 style="color:#ffd700; margin:0;">🎯 F.4：二次函數拋物線加農砲 (頂點式)</h3>
+        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
+            <b>規則</b>：輸入頂點式方程式 $y = a(x-h)^2 + k$ 的各個參數，完美弧線擊中坐標軸上的黃金標靶！
+        </p>
+        <div class="workspace-layout">
+            <div class="canvas-container">
+                <canvas id="canvasS4"></canvas>
+            </div>
+            <div class="controls-container">
+                <div>
+                    <h4 style="margin-top:0; color:#00ffcc;">🔬 彈道參數</h4>
+                    <div id="formulaTextS4" style="font-size:18px; font-weight:bold; text-align:center; margin:10px 0; color:#00ffff;">y = a(x - h)² + k</div>
+                    <div class="input-row">
+                        <label>拉伸 (a):</label>
+                        <input type="number" step="0.05" id="paramA" value="-0.1" oninput="updateFormulaS4()">
+                    </div>
+                    <div class="input-row">
+                        <label>頂點 h:</label>
+                        <input type="number" step="1" id="paramH" value="5" oninput="updateFormulaS4()">
+                    </div>
+                    <div class="input-row">
+                        <label>頂點 k:</label>
+                        <input type="number" step="1" id="paramK" value="8" oninput="updateFormulaS4()">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="launchS4()">🔥 發射砲彈</button>
+            </div>
+        </div>
+        <div class="feedback" id="feedbackS4"></div>
+    </div>
+
+    <!-- ================= 中五級：圓方程星河盾 ================= -->
+    <div class="game-panel" id="panel5">
+        <h3 style="color:#ffd700; margin:0;">🛡️ F.5：星河圓形重力力場盾 (圓的標準方程)</h3>
+        <p style="font-size:13px; color:#aaa; margin:5px 0 0 0;">
+            <b>規則</b>：混沌重力球正以圓心 $(h, k)$，半徑 $r$ 襲來。在右側輸入正確的圓標準方程 $(x - h)^2 + (y - k)^2 = r^2$ 各項參數展開防禦結界！
+        </p>
+        <div class="workspace-layout">
+            <div class="canvas-container">
+                <canvas id="canvasS5"></canvas>
+            </div>
+            <div class="controls-container">
+                <div>
+                    <h4 style="margin-top:0; color:#00ffcc;">🌌 圓形防禦結界</h4>
+                    <div id="problemS5" style="font-size:15px; margin-bottom:15px; line-height:1.6;">檢測星軌中...</div>
+                    <div style="font-size:16px; font-weight:bold; text-align:center; margin-bottom:15px; color:#00ffff;">
+                        (x - <input type="number" id="inputS5H" style="width:45px; display:inline-block; padding:3px; margin:0 3px;">)² + 
+                        (y - <input type="number" id="inputS5K" style="width:45px; display:inline-block; padding:3px; margin:0 3px;">)² = 
+                        <input type="number" id="inputS5R2" style="width:55px; display:inline-block; padding:3px; margin:0 3px;">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="checkS5()">🛡️ 啟動星河盾</button>
+            </div>
+        </div>
+        <div class="feedback" id="feedbackS5"></div>
     </div>
 
     <a href="lobby.html" class="btn-back">🏰 返回城堡大廳</a>
@@ -822,199 +333,545 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
 
 <script>
     const SUPABASE_URL = 'https://hjscymfoluuqsltfshxu.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
+    const SUPABASE_ANON_KEY = 'YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqc2N5bWZvbHV1cXNsdGZzaHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzQxNzcsImV4cCI6MjA5OTE1MDE3N30.AVaR1LWvnaONa5KIYr4rTteqZ-VgdPOvFgGvLw8f9Zk'; 
 
     let isLocalMode = (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_URL === '');
     let supabaseClient = null;
-    try {
-        if (!isLocalMode && typeof supabase !== 'undefined') {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } else {
-            isLocalMode = true;
-        }
-    } catch(e) {
-        isLocalMode = true;
+    if (!isLocalMode) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     const studentId = localStorage.getItem('supabase_student_id');
     const studentName = localStorage.getItem('supabase_student_name');
     let gems = 0;
 
-    // 畫布
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let targetX = 8;
-    let targetY = 4;
-    const scale = 30; // 每個網格 30 像素
-    const originX = 50; 
-    const originY = 300;
-
-    let projX = 0;
-    let tracePoints = [];
-    let animationId = null;
-
-    // 概念主題數據庫
-    const teasers = {
-        1: {
-            title: "中一級：深海潛艇 負數運算",
-            emoji: "⚓",
-            desc: "【對接 DSE 負數與簡易代數】：海底有不同的寶箱位於負數座標（例如：-15m, -45m）。玩家必須輸入正確的有向數加減算式（如 -20m 加上下潛 -15m 等於 -35m），控制潛水艇精準下潛到指定高度捕獲寶物！"
-        },
-        2: {
-            title: "中二級：畢氏定理 攀爬者",
-            emoji: "🧗‍♂️",
-            desc: "【對接 DSE 幾何與畢氏定理】：攀爬者拋出繩索到城堡城牆頂端。畫面給出城堡高度 a 與地面前進距離 b。玩家必須使用畢氏定理 $a^2 + b^2 = c^2$ 計算出繩索的精確長度，正確則成功固定並攀登，錯誤則繩索因太短或太長跌落！"
-        },
-        3: {
-            title: "中三級：三角學星空折射 仰角",
-            emoji: "🏹",
-            desc: "【對接 DSE 簡易三角學 sin, cos, tan】：發射光能雷射擊碎懸浮在天空的混沌核心。系統給出直角三角形的底邊（水平距離）與高度（核心高度），要求玩家計算出雷射炮精準的仰角 theta（$\\tan \\theta = \\frac{y}{x}$），输入正確後發射魔法擊穿核心！"
-        },
-        5: {
-            title: "中五級：圓方程 星河盾 Barrier",
-            emoji: "🛡️",
-            desc: "【對接 DSE 圓的方程 $(x-a)^2 + (y-b)^2 = r^2$】：混沌魔獸會發射隨機圓形重力彈。畫面給出圓心座標 (a, b) 和半徑 r。玩家必須在控制台輸入對應的「圓的標準方程」，完美啟動圓形結界吸收重力彈！"
-        }
-    };
-
-    async function initGame() {
+    // ==========================================
+    // 1. 遊戲初始化 & 分頁切換
+    // ==========================================
+    async function initAllGames() {
         if (!studentId) {
-            alert('請先登入！');
+            alert('請先在學院傳送門登入！');
             window.location.href = 'index.html';
             return;
         }
 
+        // 載入寶石
         if (isLocalMode) {
             let users = JSON.parse(localStorage.getItem('local_users') || '{}');
             let user = users[studentName];
             if (user) gems = user.gems;
         } else {
-            try {
-                const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
-                if (data) gems = data.gems;
-            } catch(e) {
-                console.error(e);
-            }
+            const { data } = await supabaseClient.from('student_progress').select('gems').eq('student_id', studentId).single();
+            if (data) gems = data.gems;
         }
         document.getElementById('gemCount').innerText = gems;
 
-        resetTarget();
-        drawGrid();
-        updateFormula();
+        // 初始化五個遊戲
+        initS1();
+        initS2();
+        initS3();
+        initS4();
+        initS5();
     }
 
-    function resetTarget() {
-        targetX = Math.floor(Math.random() * 5) + 6; 
-        targetY = Math.floor(Math.random() * 6) + 2; 
-        document.getElementById('gameFeedback').innerText = '';
+    function switchGrade(grade) {
+        document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
+
+        event.target.classList.add('active');
+        document.getElementById(`panel${grade}`).classList.add('active');
+
+        // 當切換時重繪對應畫布
+        if (grade === 1) drawS1();
+        if (grade === 2) drawS2();
+        if (grade === 3) drawS3();
+        if (grade === 4) drawS4();
+        if (grade === 5) drawS5();
     }
 
-    function drawGrid() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ==========================================
+    // S1: 一元一次天平
+    // ==========================================
+    let s1A, s1B, s1C, s1Ans;
+    const canvasS1 = document.getElementById('canvasS1');
+    const ctxS1 = canvasS1.getContext('2d');
+    canvasS1.width = 450; canvasS1.height = 350;
 
-        // 畫網格線
-        ctx.strokeStyle = '#1e1a3c';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < canvas.width; x += scale) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-        }
-        for (let y = 0; y < canvas.height; y += scale) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-        }
-
-        // 畫軸
-        ctx.strokeStyle = '#5d4297';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
-
-        // 畫發射砲台 (0, 0)
-        ctx.fillStyle = '#ff4e50';
-        ctx.beginPath(); ctx.arc(originX, originY, 10, 0, Math.PI * 2); ctx.fill();
-
-        // 畫標靶
-        ctx.fillStyle = '#ffd700';
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(originX + targetX * scale, originY - targetY * scale, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0; 
-
-        // 畫歷史軌跡
-        if (tracePoints.length > 0) {
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(originX + tracePoints[0].x * scale, originY - tracePoints[0].y * scale);
-            for (let i = 1; i < tracePoints.length; i++) {
-                ctx.lineTo(originX + tracePoints[i].x * scale, originY - tracePoints[i].y * scale);
-            }
-            ctx.stroke();
-        }
+    function initS1() {
+        s1Ans = Math.floor(Math.random() * 5) + 2; // x = 2 to 6
+        s1A = Math.floor(Math.random() * 2) + 2;   // A = 2 or 3
+        s1B = Math.floor(Math.random() * 6) + 1;   // B = 1 to 6
+        s1C = s1A * s1Ans + s1B;
+        document.getElementById('equationTextS1').innerText = `${s1A}x + ${s1B} = ${s1C}`;
+        document.getElementById('inputS1').value = '';
+        document.getElementById('feedbackS1').innerText = '';
+        drawS1();
     }
 
-    function updateFormula() {
-        const a = parseFloat(document.getElementById('paramA').value) || 0;
-        const h = parseFloat(document.getElementById('paramH').value) || 0;
-        const k = parseFloat(document.getElementById('paramK').value) || 0;
+    function drawS1(isBalanced = false, offsetAngle = 0) {
+        ctxS1.clearRect(0, 0, canvasS1.width, canvasS1.height);
         
+        // 畫支架
+        ctxS1.strokeStyle = '#5d4297'; ctxS1.lineWidth = 6;
+        ctxS1.beginPath(); ctxS1.moveTo(225, 280); ctxS1.lineTo(225, 100); ctxS1.stroke();
+        ctxS1.beginPath(); ctxS1.moveTo(175, 280); ctxS1.lineTo(275, 280); ctxS1.stroke();
+
+        // 畫天平橫樑 (支點在 225, 100)
+        let beamLen = 140;
+        let leftX = 225 - beamLen;
+        let rightX = 225 + beamLen;
+        let leftY = 100 + (isBalanced ? 0 : 25);
+        let rightY = 100 - (isBalanced ? 0 : 25);
+
+        ctxS1.strokeStyle = '#e0c068'; ctxS1.lineWidth = 4;
+        ctxS1.beginPath(); ctxS1.moveTo(leftX, leftY); ctxS1.lineTo(rightX, rightY); ctxS1.stroke();
+
+        // 畫左吊盤
+        ctxS1.strokeStyle = '#fff'; ctxS1.lineWidth = 2;
+        ctxS1.beginPath(); ctxS1.moveTo(leftX, leftY); ctxS1.lineTo(leftX - 30, leftY + 80);
+        ctxS1.moveTo(leftX, leftY); ctxS1.lineTo(leftX + 30, leftY + 80);
+        ctxS1.stroke();
+        ctxS1.fillStyle = '#1b0e35'; ctxS1.beginPath();
+        ctxS1.arc(leftX, leftY + 80, 40, 0, Math.PI, false); ctxS1.fill(); ctxS1.stroke();
+
+        // 畫左盤物體 ($A$x + $B$砝碼)
+        ctxS1.fillStyle = '#ff4e50'; ctxS1.font = '12px bold Arial';
+        for(let i=0; i<s1A; i++) {
+            ctxS1.fillRect(leftX - 35 + i*16, leftY + 60, 14, 18);
+            ctxS1.fillStyle = '#fff'; ctxS1.fillText('x', leftX - 31 + i*16, leftY + 73);
+            ctxS1.fillStyle = '#ff4e50';
+        }
+        ctxS1.fillStyle = '#ffd700';
+        for(let i=0; i<s1B; i++) {
+            ctxS1.beginPath(); ctxS1.arc(leftX - 25 + i*10, leftY + 85, 4, 0, Math.PI*2); ctxS1.fill();
+        }
+
+        // 畫右吊盤
+        ctxS1.strokeStyle = '#fff';
+        ctxS1.beginPath(); ctxS1.moveTo(rightX, rightY); ctxS1.lineTo(rightX - 30, rightY + 80);
+        ctxS1.moveTo(rightX, rightY); ctxS1.lineTo(rightX + 30, rightY + 80);
+        ctxS1.stroke();
+        ctxS1.fillStyle = '#1b0e35'; ctxS1.beginPath();
+        ctxS1.arc(rightX, rightY + 80, 40, 0, Math.PI, false); ctxS1.fill(); ctxS1.stroke();
+
+        // 畫右盤砝碼 ($C$個)
+        ctxS1.fillStyle = '#00ffcc';
+        for(let i=0; i<s1C; i++) {
+            let col = i % 5;
+            let row = Math.floor(i / 5);
+            ctxS1.beginPath(); ctxS1.arc(rightX - 25 + col*12, rightY + 85 - row*10, 4, 0, Math.PI*2); ctxS1.fill();
+        }
+    }
+
+    async function checkS1() {
+        const val = parseInt(document.getElementById('inputS1').value);
+        const fb = document.getElementById('feedbackS1');
+        if (isNaN(val)) { fb.innerText = '⚠️ 請輸入解！'; return; }
+
+        if (val === s1Ans) {
+            drawS1(true);
+            fb.innerText = '🎉【天平平衡！】完美算出代數重力 x = ' + s1Ans + ' kg，獲得 100 寶石！';
+            fb.style.color = '#00ffcc';
+            await rewardGems(100);
+            setTimeout(initS1, 3000);
+        } else {
+            fb.innerText = '❌ 天平傾斜！比例不平衡，請重新心算一次。';
+            fb.style.color = '#ff4d4d';
+        }
+    }
+
+    // ==========================================
+    // S2: 畢氏定理 攀爬
+    // ==========================================
+    let s2A, s2B, s2C;
+    const canvasS2 = document.getElementById('canvasS2');
+    const ctxS2 = canvasS2.getContext('2d');
+    canvasS2.width = 450; canvasS2.height = 350;
+
+    const pythagoreanTriples = [
+        {a: 3, b: 4, c: 5},
+        {a: 5, b: 12, c: 13},
+        {a: 8, b: 15, c: 17},
+        {a: 6, b: 8, c: 10}
+    ];
+
+    function initS2() {
+        let trip = pythagoreanTriples[Math.floor(Math.random() * pythagoreanTriples.length)];
+        s2A = trip.a; s2B = trip.b; s2C = trip.c;
+
+        document.getElementById('problemS2').innerHTML = `城堡垂直城牆高 <b>a = ${s2A}</b> 米，護城河防線寬 <b>b = ${s2B}</b> 米。<br>請精算發射防禦斜索的長度 <b>c</b> (斜邊)：`;
+        document.getElementById('inputS2').value = '';
+        document.getElementById('feedbackS2').innerText = '';
+        drawS2();
+    }
+
+    function drawS2(projectileLen = 0) {
+        ctxS2.clearRect(0, 0, canvasS2.width, canvasS2.height);
+
+        // 畫座標原點在左下 (50, 300)
+        let oX = 50, oY = 300;
+        let scaleS2 = 12;
+
+        // 畫城牆
+        ctxS2.fillStyle = '#4c3c8c';
+        ctxS2.fillRect(oX, oY - s2A*scaleS2, 40, s2A*scaleS2);
+
+        // 畫城門要塞
+        ctxS2.fillStyle = '#ffd700'; ctxS2.font = '24px Arial';
+        ctxS2.fillText('🏰', oX + 5, oY - s2A*scaleS2 - 10);
+
+        // 畫敵人
+        ctxS2.fillText('👿', oX + s2B*scaleS2 - 10, oY);
+
+        // 畫直角三角形底線
+        ctxS2.strokeStyle = '#5d4297'; ctxS2.lineWidth = 2;
+        ctxS2.beginPath(); ctxS2.moveTo(oX, oY); ctxS2.lineTo(oX + s2B*scaleS2, oY); ctxS2.stroke();
+
+        // 畫直角符號
+        ctxS2.beginPath();
+        ctxS2.moveTo(oX + 15, oY); ctxS2.lineTo(oX + 15, oY - 15); ctxS2.lineTo(oX, oY - 15);
+        ctxS2.stroke();
+
+        // 標註長度
+        ctxS2.fillStyle = '#fff'; ctxS2.font = '14px Arial';
+        ctxS2.fillText(`a = ${s2A}`, oX - 35, oY - (s2A*scaleS2)/2);
+        ctxS2.fillText(`b = ${s2B}`, oX + (s2B*scaleS2)/2, oY + 20);
+
+        // 畫射出的防禦索
+        if (projectileLen > 0) {
+            ctxS2.strokeStyle = '#00ffcc'; ctxS2.lineWidth = 4;
+            ctxS2.beginPath();
+            ctxS2.moveTo(oX, oY - s2A*scaleS2);
+            
+            // 沿著斜邊投影
+            let endX = oX + (s2B*scaleS2) * (projectileLen / s2C);
+            let endY = (oY - s2A*scaleS2) + (s2A*scaleS2) * (projectileLen / s2C);
+            ctxS2.lineTo(endX, endY);
+            ctxS2.stroke();
+
+            // 畫勾爪
+            ctxS2.fillStyle = '#00ffcc'; ctxS2.beginPath();
+            ctxS2.arc(endX, endY, 6, 0, Math.PI*2); ctxS2.fill();
+        }
+    }
+
+    async function checkS2() {
+        const val = parseInt(document.getElementById('inputS2').value);
+        const fb = document.getElementById('feedbackS2');
+        if (isNaN(val)) { fb.innerText = '⚠️ 請輸入斜邊值！'; return; }
+
+        let timer = 0;
+        function animateCable() {
+            timer += 0.5;
+            drawS2(timer);
+            if (timer < val) {
+                requestAnimationFrame(animateCable);
+            } else {
+                if (val === s2C) {
+                    fb.innerText = '🎉【精準命中！】勾索斜邊長度 c = ' + s2C + ' 米，完美擊潰城下魔獸！獲得 100 寶石！';
+                    fb.style.color = '#00ffcc';
+                    rewardGems(100);
+                    setTimeout(initS2, 3000);
+                } else {
+                    fb.innerText = '❌ 繩索太短或太長！未能成功勾住目標，請重新精算！';
+                    fb.style.color = '#ff4d4d';
+                }
+            }
+        }
+        animateCable();
+    }
+
+    // ==========================================
+    // S3: 三角學島嶼導航
+    // ==========================================
+    let s3X, s3Angle, s3AnsY;
+    const canvasS3 = document.getElementById('canvasS3');
+    const ctxS3 = canvasS3.getContext('2d');
+    canvasS3.width = 450; canvasS3.height = 350;
+
+    const trigPool = [
+        { angle: 30, x: 17.3, y: 10 }, 
+        { angle: 45, x: 15, y: 15 },
+        { angle: 60, x: 10, y: 17.3 }
+    ];
+
+    function initS3() {
+        let index = Math.floor(Math.random() * trigPool.length);
+        let data = trigPool[index];
+        s3X = data.x; s3Angle = data.angle; s3AnsY = data.y;
+
+        document.getElementById('problemS3').innerHTML = `魔法船距離島嶼水平距離 <b>x = ${s3X}</b> 米，仰角為 <b>\\theta = ${s3Angle}^\\circ</b>。<br>利用正切 <b>\\tan\\theta = \\frac{y}{x}</b> 口算島嶼高度 <b>y</b> (保留一位小數)：`;
+        document.getElementById('inputS3').value = '';
+        document.getElementById('feedbackS3').innerText = '';
+        drawS3();
+    }
+
+    function drawS3(revealY = 0) {
+        ctxS3.clearRect(0, 0, canvasS3.width, canvasS3.height);
+
+        let oX = 50, oY = 300;
+        let scaleS3 = 15;
+
+        // 畫小船
+        ctxS3.font = '24px Arial';
+        ctxS3.fillText('⛵', oX - 10, oY);
+
+        // 畫浮空島
+        ctxS3.fillStyle = '#00ffcc';
+        ctxS3.fillRect(oX + s3X * scaleS3 - 20, oY - s3AnsY * scaleS3, 40, 10);
+        ctxS3.fillText('🏝️', oX + s3X * scaleS3 - 15, oY - s3AnsY * scaleS3 - 10);
+
+        // 畫水平線
+        ctxS3.strokeStyle = '#233470'; ctxS3.lineWidth = 1;
+        ctxS3.beginPath(); ctxS3.moveTo(oX, oY); ctxS3.lineTo(oX + s3X*scaleS3, oY); ctxS3.stroke();
+
+        // 畫觀測仰角線
+        ctxS3.strokeStyle = '#ffd700'; ctxS3.lineWidth = 2;
+        ctxS3.beginPath(); ctxS3.moveTo(oX, oY); ctxS3.lineTo(oX + s3X*scaleS3, oY - s3AnsY*scaleS3); ctxS3.stroke();
+
+        // 畫角度符號
+        ctxS3.beginPath(); ctxS3.arc(oX, oY, 25, 0, -s3Angle * Math.PI / 180, true); ctxS3.stroke();
+        ctxS3.fillStyle = '#ffd700'; ctxS3.font = '11px Arial';
+        ctxS3.fillText(`${s3Angle}°`, oX + 30, oY - 10);
+
+        // 標註 x 距離
+        ctxS3.fillStyle = '#fff'; ctxS3.fillText(`x = ${s3X}m`, oX + (s3X*scaleS3)/2 - 10, oY + 20);
+
+        // 畫垂直輔助線高度 y
+        if (revealY > 0) {
+            ctxS3.strokeStyle = '#00ffcc'; ctxS3.lineWidth = 3;
+            ctxS3.beginPath();
+            ctxS3.moveTo(oX + s3X*scaleS3, oY);
+            ctxS3.lineTo(oX + s3X*scaleS3, oY - revealY*scaleS3);
+            ctxS3.stroke();
+        }
+    }
+
+    async function checkS3() {
+        const val = parseFloat(document.getElementById('inputS3').value);
+        const fb = document.getElementById('feedbackS3');
+        if (isNaN(val)) { fb.innerText = '⚠️ 請輸入高度值！'; return; }
+
+        let tempY = 0;
+        function animateNav() {
+            tempY += 0.4;
+            drawS3(tempY);
+            if (tempY < val) {
+                requestAnimationFrame(animateNav);
+            } else {
+                if (Math.abs(val - s3AnsY) <= 0.2) {
+                    fb.innerText = '🎉【成功靠港！】精算出島高度 y = ' + s3AnsY + ' 米！船隻傳送成功，獲得 100 寶石！';
+                    fb.style.color = '#00ffcc';
+                    rewardGems(100);
+                    setTimeout(initS3, 3000);
+                } else {
+                    fb.innerText = '❌ 錨定高度偏離！魔法傳送失敗，請重新計角！';
+                    fb.style.color = '#ff4d4d';
+                }
+            }
+        }
+        animateNav();
+    }
+
+    // ==========================================
+    // S4: 拋物線加農砲 (頂點式)
+    // ==========================================
+    let s4TargetX, s4TargetY;
+    const canvasS4 = document.getElementById('canvasS4');
+    const ctxS4 = canvasS4.getContext('2d');
+    canvasS4.width = 450; canvasS4.height = 350;
+    const scaleS4 = 25;
+    const oXS4 = 50, oYS4 = 300;
+
+    let s4ProjX = 0, s4Trace = [], s4Anim = null;
+
+    function initS4() {
+        s4TargetX = Math.floor(Math.random() * 5) + 6; 
+        s4TargetY = Math.floor(Math.random() * 6) + 2; 
+        document.getElementById('feedbackS4').innerText = '';
+        drawS4();
+    }
+
+    function drawS4() {
+        ctxS4.clearRect(0, 0, canvasS4.width, canvasS4.height);
+
+        // 畫格線
+        ctxS4.strokeStyle = '#1a143c'; ctxS4.lineWidth = 1;
+        for (let x = 0; x < canvasS4.width; x += scaleS4) {
+            ctxS4.beginPath(); ctxS4.moveTo(x, 0); ctxS4.lineTo(x, canvasS4.height); ctxS4.stroke();
+        }
+        for (let y = 0; y < canvasS4.height; y += scaleS4) {
+            ctxS4.beginPath(); ctxS4.moveTo(0, y); ctxS4.lineTo(canvasS4.width, y); ctxS4.stroke();
+        }
+
+        // 坐標軸
+        ctxS4.strokeStyle = '#5d4297'; ctxS4.lineWidth = 2;
+        ctxS4.beginPath(); ctxS4.moveTo(oXS4, 0); ctxS4.lineTo(oXS4, canvasS4.height); ctxS4.stroke();
+        ctxS4.beginPath(); ctxS4.moveTo(0, oYS4); ctxS4.lineTo(canvasS4.width, oYS4); ctxS4.stroke();
+
+        // 砲台
+        ctxS4.fillStyle = '#ff4e50';
+        ctxS4.beginPath(); ctxS4.arc(oXS4, oYS4, 8, 0, Math.PI*2); ctxS4.fill();
+
+        // 黃金標靶
+        ctxS4.fillStyle = '#ffd700'; ctxS4.beginPath();
+        ctxS4.arc(oXS4 + s4TargetX*scaleS4, oYS4 - s4TargetY*scaleS4, 10, 0, Math.PI*2); ctxS4.fill();
+
+        // 畫軌跡
+        if (s4Trace.length > 0) {
+            ctxS4.strokeStyle = '#00ffff'; ctxS4.lineWidth = 3;
+            ctxS4.beginPath();
+            ctxS4.moveTo(oXS4 + s4Trace[0].x*scaleS4, oYS4 - s4Trace[0].y*scaleS4);
+            for (let i=1; i<s4Trace.length; i++) {
+                ctxS4.lineTo(oXS4 + s4Trace[i].x*scaleS4, oYS4 - s4Trace[i].y*scaleS4);
+            }
+            ctxS4.stroke();
+        }
+    }
+
+    function updateFormulaS4() {
+        let a = parseFloat(document.getElementById('paramA').value) || 0;
+        let h = parseFloat(document.getElementById('paramH').value) || 0;
+        let k = parseFloat(document.getElementById('paramK').value) || 0;
         let sign = h >= 0 ? '-' : '+';
-        let hAbs = Math.abs(h);
-        document.getElementById('formulaText').innerText = `y = ${a}(x ${sign} ${hAbs})² + ${k}`;
+        document.getElementById('formulaTextS4').innerText = `y = ${a}(x ${sign} ${Math.abs(h)})² + ${k}`;
     }
 
-    function launchProjectile() {
-        if (animationId) cancelAnimationFrame(animationId);
-        
-        const a = parseFloat(document.getElementById('paramA').value) || 0;
-        const h = parseFloat(document.getElementById('paramH').value) || 0;
-        const k = parseFloat(document.getElementById('paramK').value) || 0;
+    function launchS4() {
+        if (s4Anim) cancelAnimationFrame(s4Anim);
+        let a = parseFloat(document.getElementById('paramA').value) || 0;
+        let h = parseFloat(document.getElementById('paramH').value) || 0;
+        let k = parseFloat(document.getElementById('paramK').value) || 0;
 
-        projX = 0;
-        tracePoints = [];
-        document.getElementById('gameFeedback').innerText = '🚀 魔法砲彈正在飛行中...';
-        document.getElementById('gameFeedback').style.color = '#ffd700';
+        s4ProjX = 0; s4Trace = [];
+        const fb = document.getElementById('feedbackS4');
+        fb.innerText = '🚀 砲彈劃過天際飛行中...'; fb.style.color = '#ffd700';
 
-        function animate() {
-            projX += 0.15;
-            let y = a * Math.pow(projX - h, 2) + k;
-            tracePoints.push({ x: projX, y: y });
+        function frame() {
+            s4ProjX += 0.15;
+            let y = a * Math.pow(s4ProjX - h, 2) + k;
+            s4Trace.push({ x: s4ProjX, y: y });
 
-            drawGrid();
+            drawS4();
 
-            ctx.fillStyle = '#00ffcc';
-            ctx.beginPath();
-            ctx.arc(originX + projX * scale, originY - y * scale, 6, 0, Math.PI * 2);
-            ctx.fill();
+            ctxS4.fillStyle = '#00ffcc'; ctxS4.beginPath();
+            ctxS4.arc(oXS4 + s4ProjX*scaleS4, oYS4 - y*scaleS4, 5, 0, Math.PI*2); ctxS4.fill();
 
-            // 精準物理碰撞判定
-            let dist = Math.sqrt(Math.pow(projX - targetX, 2) + Math.pow(y - targetY, 2));
+            let dist = Math.sqrt(Math.pow(s4ProjX - s4TargetX, 2) + Math.pow(y - s4TargetY, 2));
             if (dist <= 0.4) {
-                cancelAnimationFrame(animationId);
-                triggerSuccess();
+                fb.innerText = '🎉【完美擊中！】彈道完美切中標靶！獲得 100 寶石！';
+                fb.style.color = '#00ffcc';
+                rewardGems(100);
+                setTimeout(initS4, 3000);
                 return;
             }
 
-            if (y < -2 || projX > 15) {
-                cancelAnimationFrame(animationId);
-                document.getElementById('gameFeedback').innerText = '❌ 未能擊中目標！請重新調整頂點與開口大小。';
-                document.getElementById('gameFeedback').style.color = '#ff4d4d';
+            if (y < -2 || s4ProjX > 15) {
+                fb.innerText = '❌ 傷害落空！請微調頂點 $(h, k)$ 或拉伸 $a$ 重試。';
+                fb.style.color = '#ff4d4d';
                 return;
             }
+            s4Anim = requestAnimationFrame(frame);
+        }
+        frame();
+    }
 
-            animationId = requestAnimationFrame(animate);
+    // ==========================================
+    // S5: 圓方程星河盾
+    // ==========================================
+    let s5H, s5K, s5R, s5R2;
+    const canvasS5 = document.getElementById('canvasS5');
+    const ctxS5 = canvasS5.getContext('2d');
+    canvasS5.width = 450; canvasS5.height = 350;
+    const scaleS5 = 22;
+    const oXS5 = 225, oYS5 = 175; 
+
+    function initS5() {
+        s5H = Math.floor(Math.random() * 5) - 2; 
+        s5K = Math.floor(Math.random() * 5) - 2; 
+        s5R = Math.floor(Math.random() * 2) + 3; 
+        s5R2 = s5R * s5R;
+
+        document.getElementById('problemS5').innerHTML = `⚠️ 混沌引力核逼近中！其重心坐標圓心為 <b>(h, k) = (${s5H}, ${s5K})</b>，且探測半徑 <b>r = ${s5R}</b>。<br>請輸入防禦圓標準方程參數進行張網：`;
+        document.getElementById('inputS5H').value = '';
+        document.getElementById('inputS5K').value = '';
+        document.getElementById('inputS5R2').value = '';
+        document.getElementById('feedbackS5').innerText = '';
+        drawS5();
+    }
+
+    function drawS5(shieldRadius = 0) {
+        ctxS5.clearRect(0, 0, canvasS5.width, canvasS5.height);
+
+        // 網格
+        ctxS5.strokeStyle = '#141434'; ctxS5.lineWidth = 1;
+        for (let x = 0; x < canvasS5.width; x += scaleS5) {
+            ctxS5.beginPath(); ctxS5.moveTo(x, 0); ctxS5.lineTo(x, canvasS5.height); ctxS5.stroke();
+        }
+        for (let y = 0; y < canvasS5.height; y += scaleS5) {
+            ctxS5.beginPath(); ctxS5.moveTo(0, y); ctxS5.lineTo(canvasS5.width, y); ctxS5.stroke();
         }
 
-        animate();
+        // 坐標軸
+        ctxS5.strokeStyle = '#5d4297'; ctxS5.lineWidth = 2;
+        ctxS5.beginPath(); ctxS5.moveTo(oXS5, 0); ctxS5.lineTo(oXS5, canvasS5.height); ctxS5.stroke();
+        ctxS5.beginPath(); ctxS5.moveTo(0, oYS5); ctxS5.lineTo(canvasS5.width, oYS5); ctxS5.stroke();
+
+        // 重力球 (紅色)
+        ctxS5.fillStyle = 'rgba(255, 78, 80, 0.4)';
+        ctxS5.strokeStyle = '#ff4e50'; ctxS5.lineWidth = 3;
+        ctxS5.beginPath();
+        ctxS5.arc(oXS5 + s5H*scaleS5, oYS5 - s5K*scaleS5, s5R*scaleS5, 0, Math.PI*2);
+        ctxS5.fill(); ctxS5.stroke();
+
+        ctxS5.fillStyle = '#ff4e50'; ctxS5.font = '24px Arial';
+        ctxS5.fillText('👿', oXS5 + s5H*scaleS5 - 12, oYS5 - s5K*scaleS5 + 8);
+
+        // 玩家星河盾
+        if (shieldRadius > 0) {
+            ctxS5.strokeStyle = '#00ffcc'; ctxS5.lineWidth = 4;
+            ctxS5.beginPath();
+            ctxS5.arc(oXS5 + s5H*scaleS5, oYS5 - s5K*scaleS5, shieldRadius*scaleS5, 0, Math.PI*2);
+            ctxS5.stroke();
+        }
     }
 
-    async function triggerSuccess() {
-        document.getElementById('gameFeedback').innerText = '🎉【完美命中！】彈道完美擊中黃金標靶！獲得 100 寶石！';
-        document.getElementById('gameFeedback').style.color = '#00ffcc';
+    async function checkS5() {
+        const valH = parseInt(document.getElementById('inputS5H').value);
+        const valK = parseInt(document.getElementById('inputS5K').value);
+        const valR2 = parseInt(document.getElementById('inputS5R2').value);
+        const fb = document.getElementById('feedbackS5');
 
-        gems += 100;
+        if (isNaN(valH) || isNaN(valK) || isNaN(valR2)) {
+            fb.innerText = '⚠️ 請將防禦圓方程三個參數填寫完整！'; return;
+        }
+
+        let currentRad = 0;
+        function animateShield() {
+            currentRad += 0.2;
+            drawS5(currentRad);
+            if (currentRad * currentRad < valR2) {
+                requestAnimationFrame(animateShield);
+            } else {
+                if (valH === s5H && valK === s5K && valR2 === s5R2) {
+                    fb.innerText = '🎉【防禦盾張開成功！】結界完全中和並封印重力力場彈！獲得 100 寶石！';
+                    fb.style.color = '#00ffcc';
+                    rewardGems(100);
+                    setTimeout(initS5, 3000);
+                } else {
+                    fb.innerText = '❌ 方程參數不吻合！防禦盾偏離了重力球心，防線受損！';
+                    fb.style.color = '#ff4d4d';
+                }
+            }
+        }
+        animateShield();
+    }
+
+    // ==========================================
+    // 6. 寶石獎勵同步函數
+    // ==========================================
+    async function rewardGems(amount) {
+        gems += amount;
         document.getElementById('gemCount').innerText = gems;
 
         if (isLocalMode) {
@@ -1026,51 +883,14 @@ print("minigames.html v4 written successfully with DOMContentLoaded and selectio
         } else {
             try {
                 await supabaseClient.from('student_progress').update({ gems }).eq('student_id', studentId);
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
             }
         }
-
-        // 3秒後重新整理標靶，刷新下一關
-        setTimeout(() => {
-            resetTarget();
-            drawGrid();
-        }, 3000);
+        localStorage.setItem('cached_gems', gems);
     }
 
-    // 💡 切換年級面板邏輯 (S1-S5)
-    function switchGrade(gradeNum) {
-        document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('active'));
-        
-        // 獲取觸發事件的按鈕並添加 active
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
-
-        const s4Panel = document.getElementById('s4GamePanel');
-        const teaserPanel = document.getElementById('teaserPanel');
-
-        if (gradeNum === 4) {
-            s4Panel.style.display = 'block';
-            teaserPanel.style.display = 'none';
-            resetTarget();
-            drawGrid();
-        } else {
-            s4Panel.style.display = 'none';
-            teaserPanel.style.display = 'block';
-
-            const data = teasers[gradeNum];
-            document.getElementById('teaserEmoji').innerText = data.emoji;
-            document.getElementById('teaserTitle').innerText = data.title;
-            document.getElementById('teaserDesc').innerText = data.desc;
-        }
-    }
-
-    // 修正 canvas 渲染尺寸與 CSS 比例
-    canvas.width = 500;
-    canvas.height = 350;
-
-    initGame();
+    document.addEventListener('DOMContentLoaded', initAllGames);
 </script>
 </body>
 </html>
